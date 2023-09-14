@@ -163,7 +163,7 @@ bot = EchoBot()
 # specific to hosting with modal.com
 image = (
     Image.debian_slim()
-    .pip_install_from_requirements("requirements.txt")
+    .pip_install_from_requirements("requirements_matplotlib.txt")
     .env({"POE_API_KEY": os.environ["POE_API_KEY"]})
 )
 stub = Stub("poe-bot-quickstart")
