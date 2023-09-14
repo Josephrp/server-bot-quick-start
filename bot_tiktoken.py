@@ -1,8 +1,9 @@
 """
 
-Sample bot that echoes back messages.
+modal deploy --name ChatGPT bot_ChatGPT.py
 
-This is the simplest possible bot and a great place to start if you want to build your own bot.
+Test message:
+ChatGPT
 
 """
 from __future__ import annotations

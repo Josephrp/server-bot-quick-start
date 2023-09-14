@@ -1,6 +1,9 @@
 """
 
-Sample bot that echoes back messages.
+modal deploy --name TesseractOCR bot_TesseractOCR.py
+
+Test message:
+neverssl.com
 
 """
 from __future__ import annotations

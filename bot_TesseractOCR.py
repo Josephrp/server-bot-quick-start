@@ -1,10 +1,9 @@
 """
 
-Sample bot that echoes back messages.
+modal deploy --name TesseractOCR bot_TesseractOCR.py
 
-This is the simplest possible bot and a great place to start if you want to build your own bot.
-
-
+Test message:
+https://pjreddie.com/static/Redmon%20Resume.pdf
 
 """
 from __future__ import annotations

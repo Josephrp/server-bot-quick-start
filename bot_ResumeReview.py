@@ -1,8 +1,9 @@
 """
 
-Sample bot that echoes back messages.
+modal deploy --name ResumeReview bot_ResumeReview.py
 
-This is the simplest possible bot and a great place to start if you want to build your own bot.
+Test message:
+https://pjreddie.com/static/Redmon%20Resume.pdf
 
 """
 from __future__ import annotations
@@ -18,7 +19,7 @@ import requests
 
 from docx import Document
 from fastapi_poe import PoeBot, run
-from fastapi_poe.types import QueryRequest, SettingsResponse
+from fastapi_poe.types import QueryRequest, SettingsRequest, SettingsResponse
 from PIL import Image
 from sse_starlette.sse import ServerSentEvent
 
@@ -264,7 +265,7 @@ class EchoBot(PoeBot):
 
     async def get_settings(self, setting: SettingsRequest) -> SettingsResponse:
         return SettingsResponse(
-            server_bot_dependencies={"any": 2},
+            server_bot_dependencies={"ChatGPT": 2},
             allow_attachments=True,
             introduction_message="Please upload your resume to https://tmpfiles.org/ and reply its URL."
         )

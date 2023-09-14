@@ -1,8 +1,9 @@
 """
 
-Sample bot that echoes back messages.
+modal deploy --name MeguminWizardEx bot_MeguminWizardEx.py
 
-modal deploy --name MeguminWizardEx main.py
+Test message:
+Cast an explosion
 
 """
 from __future__ import annotations

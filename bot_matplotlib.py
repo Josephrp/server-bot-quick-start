@@ -1,11 +1,10 @@
 """
 
-Sample bot executes your Python code.
+modal deploy --name matplotlib bot_matplotlib.py
 
-modal deploy --name matplotlib main.py
+Test message:
+Draw USA map
 
-python3 echobot.py
-(assumes you already have modal set up)
 """
 
 import re
@@ -14,7 +13,7 @@ from typing import AsyncIterable
 import modal
 from fastapi_poe import PoeBot, run
 from fastapi_poe.client import MetaMessage, stream_request
-from fastapi_poe.types import QueryRequest
+from fastapi_poe.types import QueryRequest, SettingsRequest, SettingsResponse
 from modal import Stub
 from sse_starlette.sse import ServerSentEvent
 
@@ -122,6 +121,12 @@ class EchoBot(PoeBot):
             yield self.text_event("\n\nNo output or error recorded.")
             return
 
+    async def get_settings(self, setting: SettingsRequest) -> SettingsResponse:
+        return SettingsResponse(
+            server_bot_dependencies={"matplotlibTool": 2},
+            allow_attachments=False,
+            introduction_message=None,
+        )
 
 # Welcome to the Poe API tutorial. The starter code provided provides you with a quick way to get
 # a bot running. By default, the starter code uses the EchoBot, which is a simple bot that echos
