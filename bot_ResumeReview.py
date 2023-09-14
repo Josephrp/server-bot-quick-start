@@ -281,7 +281,6 @@ import os
 from fastapi_poe import make_app
 from modal import Image, Stub, asgi_app
 
-from battlebot import BattleBot
 from catbot import CatBot
 from chatgpt_allcapsbot import ChatGPTAllCapsBot
 from huggingface_bot import HuggingFaceBot
