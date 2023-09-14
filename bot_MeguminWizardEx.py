@@ -9,6 +9,7 @@ Cast an explosion
 from __future__ import annotations
 
 import random
+import textwrap
 import re
 from collections import defaultdict
 from typing import AsyncIterable
@@ -17,7 +18,7 @@ from sse_starlette.sse import ServerSentEvent
 
 from fastapi_poe import PoeBot, run
 from fastapi_poe.client import MetaMessage, stream_request
-from fastapi_poe.types import QueryRequest
+from fastapi_poe.types import QueryRequest, SettingsRequest, SettingsResponse
 
 # introduction to be added https://i.imgur.com/xbXviUO.gif
 
@@ -129,6 +130,18 @@ class EchoBot(PoeBot):
         if image_url_selection:
             image_url = random.choice(image_url_selection)
             yield self.text_event(f"\n![{emoji_classification}]({image_url})")
+
+    async def get_settings(self, setting: SettingsRequest) -> SettingsResponse:
+        return SettingsResponse(
+            server_bot_dependencies={"MeguminHelper": 1, "EmojiClassifier": 1},
+            allow_attachments=False,
+            introduction_message=textwrap.dedent("""
+            My name is Megumin! My calling is that of an archwizard, one who controls explosion magic, the strongest of all offensive magic!
+            
+            ![](https://i.imgur.com/xbXviUO.gif)
+            """
+            ).strip()
+        )
 
 
 # Welcome to the Poe API tutorial. The starter code provided provides you with a quick way to get

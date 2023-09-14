@@ -1,6 +1,6 @@
 """
 
-modal deploy --name TesseractOCR bot_TesseractOCR.py
+modal deploy --name PromotedAnswer bot_PromotedAnswer.py
 
 Test message:
 neverssl.com
@@ -15,7 +15,7 @@ import requests
 from bs4 import BeautifulSoup
 from fastapi_poe import PoeBot, run
 from fastapi_poe.client import MetaMessage, stream_request
-from fastapi_poe.types import QueryRequest
+from fastapi_poe.types import QueryRequest, SettingsRequest, SettingsResponse
 from sse_starlette.sse import ServerSentEvent
 
 PROMPT_TEMPLATE = """
@@ -140,6 +140,13 @@ class EchoBot(PoeBot):
             else:
                 current_message += msg.text
                 yield self.replace_response_event(current_message)
+
+    async def get_settings(self, setting: SettingsRequest) -> SettingsResponse:
+        return SettingsResponse(
+            server_bot_dependencies={"AnswerPromoted": 1},
+            allow_attachments=False,
+            introduction_message="Please start this conversation with the URL of the website you want to promote.",
+        )
 
 
 # Welcome to the Poe API tutorial. The starter code provided provides you with a quick way to get

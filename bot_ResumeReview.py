@@ -20,7 +20,7 @@ import requests
 from docx import Document
 from fastapi_poe import PoeBot, run
 from fastapi_poe.types import QueryRequest, SettingsRequest, SettingsResponse
-from PIL import Image
+from PIL import Image as PILImage
 from sse_starlette.sse import ServerSentEvent
 
 assert openai.api_key
@@ -49,13 +49,14 @@ def normalize_tmpfiles_url(url):
 async def parse_image_document_from_url(image_url: str) -> tuple[bool, str]:
     try:
         response = requests.get(image_url.strip())
-        img = Image.open(BytesIO(response.content))
+        img = PILImage.open(BytesIO(response.content))
 
         custom_config = "--psm 4"
         text = pytesseract.image_to_string(img, config=custom_config)
-        text = text[:2000]
+        text = text[:10000]
         return True, text
-    except BaseException:
+    except BaseException as e:
+        print(e)
         return False, ""
 
 
@@ -250,6 +251,8 @@ class EchoBot(PoeBot):
             url_cache[query.conversation_id] = content_url
             user_statement = RESUME_STARTING_PROMPT.format(resume_string)
 
+            print("resume_string", resume_string)
+
         conversation_cache[query.conversation_id].append(
             {"role": "user", "content": user_statement}
         )
@@ -265,8 +268,8 @@ class EchoBot(PoeBot):
 
     async def get_settings(self, setting: SettingsRequest) -> SettingsResponse:
         return SettingsResponse(
-            server_bot_dependencies={"ChatGPT": 2},
-            allow_attachments=True,
+            server_bot_dependencies={},
+            allow_attachments=False,  # to update when ready
             introduction_message="Please upload your resume to https://tmpfiles.org/ and reply its URL."
         )
 

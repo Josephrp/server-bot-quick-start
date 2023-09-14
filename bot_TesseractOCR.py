@@ -20,7 +20,7 @@ import requests
 from docx import Document
 from fastapi_poe import PoeBot, run
 from fastapi_poe.types import QueryRequest, SettingsResponse
-from PIL import Image
+from PIL import Image as PILImage
 from sse_starlette.sse import ServerSentEvent
 
 assert openai.api_key
@@ -43,13 +43,14 @@ url_cache = {}
 async def parse_image_document_from_url(image_url: str) -> tuple[bool, str]:
     try:
         response = requests.get(image_url.strip())
-        img = Image.open(BytesIO(response.content))
+        img = PILImage.open(BytesIO(response.content))
 
         custom_config = "--psm 4"
         text = pytesseract.image_to_string(img, config=custom_config)
         text = text[:10000]
         return True, text
-    except BaseException:
+    except BaseException as e:
+        print(e)
         return False, ""
 
 
@@ -237,9 +238,12 @@ class EchoBot(PoeBot):
                 print("parsing image", content_url)
                 success, resume_string = await parse_image_document_from_url(content_url)
 
+            print(resume_string[:100])
+
             if not success:
                 yield self.text_event(PARSE_FAILURE_REPLY)
                 return
+
             yield self.replace_response_event(resume_string)
             return
             url_cache[query.conversation_id] = content_url
@@ -260,9 +264,9 @@ class EchoBot(PoeBot):
 
     async def get_settings(self, setting: SettingsRequest) -> SettingsResponse:
         return SettingsResponse(
-            server_bot_dependencies={"ChatGPT": 2},
-            allow_attachments=True,
-            introduction_message="Please upload your resume to https://postimages.org/ and reply its direct link."
+            server_bot_dependencies={},
+            allow_attachments=False,
+            introduction_message="Please upload your item to https://tmpfiles.org/ and reply its direct link."
         )
 
 
