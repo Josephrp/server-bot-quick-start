@@ -178,7 +178,7 @@ bot = EchoBot()
 # app = make_app(bot, api_key=POE_API_KEY)
 
 # specific to hosting with modal.com
-image = Image.debian_slim().apt_install("libpoppler-cpp-dev").pip_install_from_requirements("requirements.txt")
+image = Image.debian_slim().apt_install("libpoppler-cpp-dev").pip_install_from_requirements("requirements_LinkAwareBot.txt")
 stub = Stub("poe-bot-quickstart")
 
 
