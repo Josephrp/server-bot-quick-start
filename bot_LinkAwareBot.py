@@ -1,6 +1,7 @@
 """
 
 modal deploy --name LinkAwareBot bot_LinkAwareBot.py
+curl -X POST https://api.poe.com/bot/fetch_settings/LinkAwareBot/$POE_API_KEY
 
 What is the difference between https://arxiv.org/pdf/2201.11903.pdf and https://arxiv.org/pdf/2305.10601.pdf
 

@@ -1,6 +1,7 @@
 """
 
-modal deploy --name ChatGPT bot_ChatGPT.py
+modal deploy --name tiktoken bot_tiktoken.py
+curl -X POST https://api.poe.com/bot/fetch_settings/tiktoken/$POE_API_KEY
 
 Test message:
 ChatGPT

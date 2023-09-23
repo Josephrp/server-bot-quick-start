@@ -1,6 +1,7 @@
 """
 
 modal deploy --name MeguminWizardEx bot_MeguminWizardEx.py
+curl -X POST https://api.poe.com/bot/fetch_settings/MeguminWizardEx/$POE_API_KEY
 
 Test message:
 Cast an explosion

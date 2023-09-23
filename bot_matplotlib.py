@@ -1,6 +1,7 @@
 """
 
 modal deploy --name matplotlib bot_matplotlib.py
+curl -X POST https://api.poe.com/bot/fetch_settings/matplotlib/$POE_API_KEY
 
 Test message:
 Draw USA map

@@ -1,6 +1,7 @@
 """
 
 modal deploy --name EnglishDiffBot bot_EnglishDiffBot.py
+curl -X POST https://api.poe.com/bot/fetch_settings/EnglishDiffBot/$POE_API_KEY
 
 Test message:
 Please revert this message.

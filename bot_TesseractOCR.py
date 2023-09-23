@@ -1,6 +1,7 @@
 """
 
 modal deploy --name TesseractOCR bot_TesseractOCR.py
+curl -X POST https://api.poe.com/bot/fetch_settings/TesseractOCR/$POE_API_KEY
 
 Test message:
 https://pjreddie.com/static/Redmon%20Resume.pdf

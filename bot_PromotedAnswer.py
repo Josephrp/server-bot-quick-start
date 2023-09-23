@@ -1,6 +1,7 @@
 """
 
 modal deploy --name PromotedAnswer bot_PromotedAnswer.py
+curl -X POST https://api.poe.com/bot/fetch_settings/PromotedAnswer/$POE_API_KEY
 
 Test message:
 neverssl.com

@@ -1,6 +1,7 @@
 """
 
 modal deploy --name ResumeReview bot_ResumeReview.py
+curl -X POST https://api.poe.com/bot/fetch_settings/ResumeReview/$POE_API_KEY
 
 Test message:
 https://pjreddie.com/static/Redmon%20Resume.pdf
