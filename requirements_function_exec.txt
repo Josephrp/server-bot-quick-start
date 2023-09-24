@@ -1,4 +1,4 @@
-fastapi-poe==0.0.14
+fastapi-poe==0.0.19
 huggingface-hub==0.16.4
 ipython
 scipy

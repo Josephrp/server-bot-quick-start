@@ -98,7 +98,6 @@ class EchoBot(PoeBot):
         return SettingsResponse(
             server_bot_dependencies={"CheckPythonTool": 2},
             allow_attachments=False,
-            introduction_message="",
         )
 
 
@@ -138,7 +137,7 @@ bot = EchoBot()
 # specific to hosting with modal.com
 image = (
     Image.debian_slim()
-    .pip_install_from_requirements("requirements_matplotlib.txt")
+    .pip_install_from_requirements("requirements_PythonAgent.txt")
     .env({"POE_API_KEY": os.environ["POE_API_KEY"]})
 )
 stub = Stub("poe-bot-quickstart")

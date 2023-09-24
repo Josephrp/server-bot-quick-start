@@ -126,7 +126,6 @@ class EchoBot(PoeBot):
         return SettingsResponse(
             server_bot_dependencies={"ChatGPT": 2},
             allow_attachments=False,
-            introduction_message="Welcome.",
         )
 
 # Welcome to the Poe API tutorial. The starter code provided provides you with a quick way to get
