@@ -221,14 +221,25 @@ class EchoBot(PoeBot):
         user_statement: str = query.query[-1].content
         print(query.conversation_id, user_statement)
 
-        if query.conversation_id not in url_cache:
+        if query.query[-1].attachments and query.query[-1].attachments[0].content_type == "application/pdf":
+            content_url = query.query[-1].attachments[0].url
+            print("parsing pdf", content_url)
+            success, resume_string = await parse_pdf_document_from_url(content_url)
+
+        elif query.query[-1].attachments and query.query[-1].attachments[0].content_type.endswith("document"):
+            content_url = query.query[-1].attachments[0].url
+            print("parsing docx", content_url)
+            success, resume_string = await parse_pdf_document_from_docx(content_url)
+
+        # TODO: parse other types of documents
+
+        elif query.conversation_id not in url_cache:
             # TODO: validate user_statement is not malicious
             if len(user_statement.strip().split()) > 1:
                 yield self.text_event(MULTIWORD_FAILURE_REPLY)
                 return
 
             content_url = user_statement.strip()
-            content_url = normalize_tmpfiles_url(content_url)
             content_url = content_url.split("?")[0]  # remove query_params
 
             yield self.text_event(UPDATE_IMAGE_PARSING)
@@ -241,18 +252,18 @@ class EchoBot(PoeBot):
                 success, resume_string = await parse_pdf_document_from_docx(content_url)
             else:  # assume image
                 print("parsing image", content_url)
-                success, resume_string = await parse_image_document_from_url(
-                    content_url
-                )
+                success, resume_string = await parse_image_document_from_url(content_url)
+
+            print(resume_string[:100])
 
             if not success:
                 yield self.text_event(PARSE_FAILURE_REPLY)
                 return
-            yield self.text_event(UPDATE_LLM_QUERY.format(resume=content_url))
-            url_cache[query.conversation_id] = content_url
-            user_statement = RESUME_STARTING_PROMPT.format(resume_string)
 
-            print("resume_string", resume_string)
+        yield self.text_event(UPDATE_LLM_QUERY.format(resume=content_url))
+
+        url_cache[query.conversation_id] = content_url
+        user_statement = RESUME_STARTING_PROMPT.format(resume_string)
 
         conversation_cache[query.conversation_id].append(
             {"role": "user", "content": user_statement}
@@ -270,7 +281,7 @@ class EchoBot(PoeBot):
     async def get_settings(self, setting: SettingsRequest) -> SettingsResponse:
         return SettingsResponse(
             server_bot_dependencies={},
-            allow_attachments=False,  # to update when ready
+            allow_attachments=True,  # to update when ready
             introduction_message="Please upload your resume to https://tmpfiles.org/ and reply its URL."
         )
 
