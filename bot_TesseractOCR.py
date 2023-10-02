@@ -212,6 +212,11 @@ class EchoBot(PoeBot):
             print("parsing pdf", content_url)
             success, resume_string = await parse_pdf_document_from_url(content_url)
 
+        elif query.query[-1].attachments and query.query[-1].attachments[0].content_type.endswith("document"):
+            content_url = query.query[-1].attachments[0].url
+            print("parsing docx", content_url)
+            success, resume_string = await parse_pdf_document_from_docx(content_url)
+
         # TODO: parse other types of documents
 
         elif query.conversation_id not in url_cache:
@@ -264,7 +269,7 @@ class EchoBot(PoeBot):
         return SettingsResponse(
             server_bot_dependencies={},
             allow_attachments=True,
-            introduction_message="Please upload your pdf using the attachment icon."
+            introduction_message="Please upload your document (pdf, docx)."
         )
 
 
