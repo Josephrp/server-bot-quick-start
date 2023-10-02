@@ -1,7 +1,7 @@
 """
 
 modal deploy --name nougatOCR bot_nougatOCR.py
-curl -X POST https://api.poe.com/bot/fetch_settings/TesseractOCR/$POE_API_KEY
+curl -X POST https://api.poe.com/bot/fetch_settings/nougatOCR/$POE_API_KEY
 
 Test message:
 https://pjreddie.com/static/Redmon%20Resume.pdf
@@ -13,45 +13,38 @@ from collections import defaultdict
 from io import BytesIO
 from typing import AsyncIterable
 
-import openai
-import pdftotext
-import pytesseract
-import requests
-
-from docx import Document
 from fastapi_poe import PoeBot, run
 from fastapi_poe.types import QueryRequest, SettingsResponse
-from PIL import Image as PILImage
 from sse_starlette.sse import ServerSentEvent
 
+import modal
+# https://modalbetatesters.slack.com/archives/C031Z7H15DG/p1675177408741889?thread_ts=1675174647.477169&cid=C031Z7H15DG
+modal.app._is_container_app = False
 
-# not working need to fix
 
 class EchoBot(PoeBot):
     async def get_response(self, query: QueryRequest) -> AsyncIterable[ServerSentEvent]:
-        user_statement: str = query.query[-1].content
-        print(query.conversation_id, user_statement)
+        if query.query[-1].attachments and query.query[-1].attachments[0].content_type == "application/pdf":
+            content_url = query.query[-1].attachments[0].url
+            yield self.text_event("PDF attachment received. Please wait while we convert ...")
+        else:
+            yield self.replace_response_event("PDF attachment not found.")
 
-        image_data = None
-        filename = "image.png"
-        if os.path.isfile(filename):
-            with open(filename, "rb") as f:
-                image_data = f.read()
-            os.remove(filename)
+        try:
+            f = modal.Function.lookup("ocr-shared", "nougat_ocr")
+            captured_output = f.call(content_url)  # need async await?
+        except modal.exception.TimeoutError:
+            yield self.replace_response_event("Time limit exceeded.")
+            return
 
-        if query.conversation_id not in url_cache:
-            # TODO: validate user_statement is not malicious
-            if len(user_statement.strip().split()) > 1:
-                yield self.text_event(MULTIWORD_FAILURE_REPLY)
-                return
+        yield self.replace_response_event(captured_output)
 
-            captured_output = f.call(code)
 
     async def get_settings(self, setting: SettingsRequest) -> SettingsResponse:
         return SettingsResponse(
             server_bot_dependencies={},
             allow_attachments=True,
-            introduction_message="Please upload a pdf."
+            introduction_message="Please upload your document (pdf)."
         )
 
 
