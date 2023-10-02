@@ -282,7 +282,7 @@ class EchoBot(PoeBot):
         return SettingsResponse(
             server_bot_dependencies={},
             allow_attachments=True,  # to update when ready
-            introduction_message="Please upload your resume to https://tmpfiles.org/ and reply its URL."
+            introduction_message="Please upload your resume (pdf, docx)."
         )
 
 
