@@ -207,7 +207,14 @@ class EchoBot(PoeBot):
         user_statement: str = query.query[-1].content
         print(query.conversation_id, user_statement)
 
-        if query.conversation_id not in url_cache:
+        if query.query[-1].attachments and query.query[-1].attachments[0].content_type == "application/pdf":
+            content_url = query.query[-1].attachments[0].url
+            print("parsing pdf", content_url)
+            success, resume_string = await parse_pdf_document_from_url(content_url)
+
+        # TODO: parse other types of documents
+
+        elif query.conversation_id not in url_cache:
             # TODO: validate user_statement is not malicious
             if len(user_statement.strip().split()) > 1:
                 yield self.text_event(MULTIWORD_FAILURE_REPLY)
@@ -234,10 +241,11 @@ class EchoBot(PoeBot):
                 yield self.text_event(PARSE_FAILURE_REPLY)
                 return
 
-            yield self.replace_response_event(resume_string)
-            return
-            url_cache[query.conversation_id] = content_url
-            user_statement = RESUME_STARTING_PROMPT.format(resume_string)
+        yield self.replace_response_event(resume_string)
+        return
+
+        url_cache[query.conversation_id] = content_url
+        user_statement = RESUME_STARTING_PROMPT.format(resume_string)
 
         conversation_cache[query.conversation_id].append(
             {"role": "user", "content": user_statement}
@@ -256,7 +264,7 @@ class EchoBot(PoeBot):
         return SettingsResponse(
             server_bot_dependencies={},
             allow_attachments=True,
-            introduction_message="Please upload your item to https://tmpfiles.org/ and reply its direct link."
+            introduction_message="Please upload your pdf using the attachment icon."
         )
 
 
