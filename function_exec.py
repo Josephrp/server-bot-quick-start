@@ -2,7 +2,7 @@
 
 Helper function to execute Python code
 
-modal deploy helper_exec.py
+modal deploy function_exec.py
 """
 
 import os

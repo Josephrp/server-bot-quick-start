@@ -2,7 +2,7 @@
 
 Helper function to upload an png image given its bytestream
 
-modal deploy helper_upload.py
+modal deploy function_upload.py
 """
 
 import os

@@ -38,3 +38,4 @@ basemap
 tiktoken
 basemap-data-hires
 cartopy
+yfinance

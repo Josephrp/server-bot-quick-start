@@ -124,7 +124,7 @@ class EchoBot(PoeBot):
 
     async def get_settings(self, setting: SettingsRequest) -> SettingsResponse:
         return SettingsResponse(
-            server_bot_dependencies={"ChatGPT": 2},
+            server_bot_dependencies={"matplotlibTool": 1},
             allow_attachments=False,
         )
 
