@@ -13,7 +13,6 @@ from collections import defaultdict
 from io import BytesIO
 from typing import AsyncIterable
 
-import openai
 import pdftotext
 import pytesseract
 import requests
@@ -23,8 +22,6 @@ from fastapi_poe import PoeBot, run
 from fastapi_poe.types import QueryRequest, SettingsResponse
 from PIL import Image as PILImage
 from sse_starlette.sse import ServerSentEvent
-
-assert openai.api_key
 
 print("version", pytesseract.get_tesseract_version())
 
@@ -205,14 +202,6 @@ The resume is contained within the following triple backticks
 """
 
 
-def process_message_with_gpt(message_history: list[dict[str, str]]) -> str:
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo", messages=message_history, temperature=0.1
-    )
-    bot_statement = response["choices"][0]["message"]["content"]
-    return bot_statement
-
-
 class EchoBot(PoeBot):
     async def get_response(self, query: QueryRequest) -> AsyncIterable[ServerSentEvent]:
         user_statement: str = query.query[-1].content
@@ -266,7 +255,7 @@ class EchoBot(PoeBot):
     async def get_settings(self, setting: SettingsRequest) -> SettingsResponse:
         return SettingsResponse(
             server_bot_dependencies={},
-            allow_attachments=False,
+            allow_attachments=True,
             introduction_message="Please upload your item to https://tmpfiles.org/ and reply its direct link."
         )
 
@@ -283,7 +272,6 @@ from fastapi_poe import make_app
 from modal import Image, Stub, asgi_app
 
 from catbot import CatBot
-from chatgpt_allcapsbot import ChatGPTAllCapsBot
 from huggingface_bot import HuggingFaceBot
 
 # Echo bot is a very simple bot that just echoes back the user's last message.
