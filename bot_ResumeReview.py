@@ -4,6 +4,7 @@ modal deploy --name ResumeReview bot_ResumeReview.py
 curl -X POST https://api.poe.com/bot/fetch_settings/ResumeReview/$POE_API_KEY
 
 Test message:
+(download this and upload)
 https://pjreddie.com/static/Redmon%20Resume.pdf
 
 """
@@ -13,7 +14,6 @@ from collections import defaultdict
 from io import BytesIO
 from typing import AsyncIterable
 
-import openai
 import pdftotext
 import pytesseract
 import requests
@@ -21,45 +21,11 @@ import requests
 from docx import Document
 from fastapi_poe import PoeBot, run
 from fastapi_poe.types import QueryRequest, SettingsRequest, SettingsResponse
-from PIL import Image as PILImage
 from sse_starlette.sse import ServerSentEvent
+from fastapi_poe.client import MetaMessage, stream_request
 
-assert openai.api_key
-
-print("version", pytesseract.get_tesseract_version())
-
-SETTINGS = {
-    "report_feedback": True,
-    "context_clear_window_secs": 60 * 60,
-    "allow_user_context_clear": True,
-}
-
-conversation_cache = defaultdict(
-    lambda: [{"role": "system", "content": RESUME_SYSTEM_PROMPT}]
-)
-
-url_cache = {}
-
-
-def normalize_tmpfiles_url(url):
-    if "tmpfiles.org/" in url and "tmpfiles.org/dl/" not in url:
-        return url.replace("tmpfiles.org/", "tmpfiles.org/dl/")
-    return url
-
-
-async def parse_image_document_from_url(image_url: str) -> tuple[bool, str]:
-    try:
-        response = requests.get(image_url.strip())
-        img = PILImage.open(BytesIO(response.content))
-
-        custom_config = "--psm 4"
-        text = pytesseract.image_to_string(img, config=custom_config)
-        text = text[:10000]
-        return True, text
-    except BaseException as e:
-        print(e)
-        return False, ""
-
+import fastapi_poe
+fastapi_poe.client.MAX_EVENT_COUNT = 10000
 
 async def parse_pdf_document_from_url(pdf_url: str) -> tuple[bool, str]:
     try:
@@ -91,72 +57,10 @@ async def parse_pdf_document_from_docx(docx_url: str) -> tuple[bool, str]:
         return False, ""
 
 
-UPDATE_IMAGE_PARSING = """\
-I am parsing your resume with Tesseract OCR ...
-
----
-
-"""
-
-# TODO: show an image, if Markdown support for that happens before image upload
-UPDATE_LLM_QUERY = """\
-I have received your resume.
-
-{resume}
-
-I am querying the language model for analysis ...
-
----
-
-"""
-
-MULTIWORD_FAILURE_REPLY = """\
-Please only send a URL.
-Do not include any other words in your reply.
-
-You can get an image URL by uploading to https://tmpfiles.org/
-
-These are examples of resume the bot can accept.
-
-https://tmpfiles.org/2262838/resume.pdf
-
-https://raw.githubusercontent.com/jakegut/resume/master/resume.png
-
-See https://poe.com/huikang/1512928000159531 for an example of an interaction.
-
-You can also try https://poe.com/xyzFormatter for advice specifically on your bullet points.
-"""
-
-PARSE_FAILURE_REPLY = """
-I could not load your resume.
-
----
-
-Please upload your resume to https://tmpfiles.org/
-
-Reply this bot with the URL only.
-
----
-
-Please ensure that you are sending something like
-
-https://tmpfiles.org/2262838/resume.pdf
-
----
-
-This bot is not able to accept links from Google drive.
-
-This bot is not able to read images from Imgur.
-
-Remember to redact sensitive information, especially contact details.
-"""
-
-
-# flake8: noqa: E501
-
+# This is now the system prompt for poe.com/ResumeReviewTool
 RESUME_SYSTEM_PROMPT = """
 You will be given text from a resume, extracted with Optical Character Recognition.
-You will suggest specific improvements for a resume, by the standards of US/Canada software industry.
+You will suggest specific improvements for a resume, by the standards of US/Canada industry.
 
 Do not give generic comments.
 All comments has to quote the relevant sentence in the resume where there is an issue.
@@ -199,90 +103,42 @@ At the end of each suggestion, add a markdown horizontal rule, which is `---`.
 Do not reproduce the full resume unless asked. You will not evaluate the resume, as your role is to suggest improvements.
 """
 
-RESUME_STARTING_PROMPT = """
-The resume is contained within the following triple backticks
-
-```
-{}
-```
-"""
-
-
-def process_message_with_gpt(message_history: list[dict[str, str]]) -> str:
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo", messages=message_history, temperature=0.1
-    )
-    bot_statement = response["choices"][0]["message"]["content"]
-    return bot_statement
-
 
 class EchoBot(PoeBot):
     async def get_response(self, query: QueryRequest) -> AsyncIterable[ServerSentEvent]:
-        user_statement: str = query.query[-1].content
-        print(query.conversation_id, user_statement)
 
-        if query.query[-1].attachments and query.query[-1].attachments[0].content_type == "application/pdf":
-            content_url = query.query[-1].attachments[0].url
-            print("parsing pdf", content_url)
-            success, resume_string = await parse_pdf_document_from_url(content_url)
-
-        elif query.query[-1].attachments and query.query[-1].attachments[0].content_type.endswith("document"):
-            content_url = query.query[-1].attachments[0].url
-            print("parsing docx", content_url)
-            success, resume_string = await parse_pdf_document_from_docx(content_url)
-
-        # TODO: parse other types of documents
-
-        elif query.conversation_id not in url_cache:
-            # TODO: validate user_statement is not malicious
-            if len(user_statement.strip().split()) > 1:
-                yield self.text_event(MULTIWORD_FAILURE_REPLY)
-                return
-
-            content_url = user_statement.strip()
-            content_url = content_url.split("?")[0]  # remove query_params
-
-            yield self.text_event(UPDATE_IMAGE_PARSING)
-
-            if content_url.endswith(".pdf"):
+        for query_message in query.query:
+            # replace attachment with text
+            if query_message.attachments and query_message.attachments[0].content_type == "application/pdf":
+                content_url = query_message.attachments[0].url
                 print("parsing pdf", content_url)
                 success, resume_string = await parse_pdf_document_from_url(content_url)
-            elif content_url.endswith(".docx"):
+                query_message.content += f"\n\n This is the attached resume: {resume_string}"
+
+            elif query_message.attachments and query_message.attachments[0].content_type.endswith("document"):
+                content_url = query_message.attachments[0].url
                 print("parsing docx", content_url)
                 success, resume_string = await parse_pdf_document_from_docx(content_url)
-            else:  # assume image
-                print("parsing image", content_url)
-                success, resume_string = await parse_image_document_from_url(content_url)
+                query_message.content += f"\n\n This is the attached resume: {resume_string}"
 
-            print(resume_string[:100])
-
-            if not success:
-                yield self.text_event(PARSE_FAILURE_REPLY)
-                return
-
-        yield self.text_event(UPDATE_LLM_QUERY.format(resume=content_url))
-
-        url_cache[query.conversation_id] = content_url
-        user_statement = RESUME_STARTING_PROMPT.format(resume_string)
-
-        conversation_cache[query.conversation_id].append(
-            {"role": "user", "content": user_statement}
-        )
-
-        message_history = conversation_cache[query.conversation_id]
-        bot_statement = process_message_with_gpt(message_history)
-        bot_statement = bot_statement.replace("---", "\n---\n")
-        yield self.text_event(bot_statement[:9500])
-
-        conversation_cache[query.conversation_id].append(
-            {"role": "assistant", "content": bot_statement}
-        )
+        current_message = ""
+        async for msg in stream_request(query, "ResumeReviewTool", query.api_key):
+            # Note: See https://poe.com/ResumeReviewTool for the prompt
+            if isinstance(msg, MetaMessage):
+                continue
+            elif msg.is_suggested_reply:
+                yield self.suggested_reply_event(msg.text)
+            elif msg.is_replace_response:
+                yield self.replace_response_event(msg.text)
+            else:
+                current_message += msg.text
+                yield self.replace_response_event(current_message)
 
     async def get_settings(self, setting: SettingsRequest) -> SettingsResponse:
         return SettingsResponse(
-            server_bot_dependencies={},
+            server_bot_dependencies={"ResumeReviewTool": 1},
             allow_attachments=True,  # to update when ready
-            introduction_message="Please upload your resume (pdf, docx)."
+            introduction_message="Please upload your resume (pdf, docx) and say 'Review this'."
         )
 
 
@@ -329,7 +185,6 @@ image = (
     .pip_install_from_requirements("requirements_ResumeReview.txt")
 ).env(
     {
-        "OPENAI_API_KEY": os.environ["OPENAI_API_KEY"],
         "POE_API_KEY": os.environ["POE_API_KEY"],
     }
 )

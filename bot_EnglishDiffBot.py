@@ -4,7 +4,7 @@ modal deploy --name EnglishDiffBot bot_EnglishDiffBot.py
 curl -X POST https://api.poe.com/bot/fetch_settings/EnglishDiffBot/$POE_API_KEY
 
 Test message:
-Please revert this message.
+Please corect this massage.
 
 """
 from __future__ import annotations
@@ -61,7 +61,7 @@ class EchoBot(PoeBot):
 
         character_reply = ""
         async for msg in stream_request(query, "EnglishDiffTool", query.api_key):
-            # Note: See https://poe.com/MeguminHelper for the system prompt
+            # Note: See https://poe.com/EnglishDiffTool for the system prompt
             if isinstance(msg, MetaMessage):
                 continue
             elif msg.is_suggested_reply:
