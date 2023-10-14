@@ -22,6 +22,9 @@ from fastapi_poe import PoeBot, run
 from fastapi_poe.client import MetaMessage, stream_request
 from fastapi_poe.types import QueryRequest, SettingsRequest, SettingsResponse
 
+import fastapi_poe
+fastapi_poe.client.MAX_EVENT_COUNT = 10000
+
 url_regex = re.compile(
     r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
 )

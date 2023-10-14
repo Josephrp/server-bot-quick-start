@@ -17,6 +17,9 @@ from fastapi_poe.client import MetaMessage, stream_request
 from fastapi_poe.types import QueryRequest, SettingsRequest, SettingsResponse
 from sse_starlette.sse import ServerSentEvent
 
+import fastapi_poe
+fastapi_poe.client.MAX_EVENT_COUNT = 10000
+
 LANGUAGE_PROMPT_TEMPLATE = """
 You will follow the instructions from the user and fix the spelling, grammar and improve the style.
 

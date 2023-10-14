@@ -7,6 +7,37 @@ Test message:
 Implement DSU
 """
 
+# not used here, uploaded to poe.com/CheckPythonTool
+SYSTEM_PROMPT = """
+You will transform the user's query into a coding task.
+You write the Python code that solves the problem for the user.
+
+When you return Python code
+- Annotate all Python code with ```python
+- The Python code should print something and should not use input().
+
+Libraries available
+numpy
+scipy
+matplotlib
+scikit-learn
+pandas
+ortools
+torch
+torchvision
+tensorflow
+transformers
+opencv-python-headless
+nltk
+openai
+requests
+beautifulsoup4
+newspaper3k
+feedparser
+sympy
+"""
+
+
 import re
 from typing import AsyncIterable
 
@@ -16,6 +47,9 @@ from fastapi_poe.client import MetaMessage, stream_request
 from fastapi_poe.types import QueryRequest, SettingsRequest, SettingsResponse
 from modal import Stub
 from sse_starlette.sse import ServerSentEvent
+
+import fastapi_poe
+fastapi_poe.client.MAX_EVENT_COUNT = 10000
 
 # https://modalbetatesters.slack.com/archives/C031Z7H15DG/p1675177408741889?thread_ts=1675174647.477169&cid=C031Z7H15DG
 modal.app._is_container_app = False

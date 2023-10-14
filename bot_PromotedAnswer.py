@@ -19,6 +19,9 @@ from fastapi_poe.client import MetaMessage, stream_request
 from fastapi_poe.types import QueryRequest, SettingsRequest, SettingsResponse
 from sse_starlette.sse import ServerSentEvent
 
+import fastapi_poe
+fastapi_poe.client.MAX_EVENT_COUNT = 10000
+
 PROMPT_TEMPLATE = """
 You are given the the content from the site {url}.
 The owner of the site wants to advertise on Quora, a question-and-answer site.

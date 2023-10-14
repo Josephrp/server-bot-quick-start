@@ -15,6 +15,9 @@ from fastapi_poe import PoeBot
 from fastapi_poe.types import QueryRequest
 from sse_starlette.sse import ServerSentEvent
 
+import fastapi_poe
+fastapi_poe.client.MAX_EVENT_COUNT = 10000
+
 import tiktoken
 
 encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")

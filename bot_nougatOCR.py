@@ -17,6 +17,9 @@ from fastapi_poe import PoeBot, run
 from fastapi_poe.types import QueryRequest, SettingsResponse
 from sse_starlette.sse import ServerSentEvent
 
+import fastapi_poe
+fastapi_poe.client.MAX_EVENT_COUNT = 10000
+
 import modal
 # https://modalbetatesters.slack.com/archives/C031Z7H15DG/p1675177408741889?thread_ts=1675174647.477169&cid=C031Z7H15DG
 modal.app._is_container_app = False
