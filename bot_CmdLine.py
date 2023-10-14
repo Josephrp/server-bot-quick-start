@@ -2,8 +2,8 @@
 
 Sample bot that echoes back messages.
 
-modal deploy --name CommandShell bot_CommandShell.py
-curl -X POST https://api.poe.com/bot/fetch_settings/CommandShell/$POE_API_KEY
+modal deploy --name CmdLine bot_CmdLine.py
+curl -X POST https://api.poe.com/bot/fetch_settings/CmdLine/$POE_API_KEY
 
 Test message:
 What is the difference between https://arxiv.org/pdf/2201.11903.pdf and https://arxiv.org/pdf/2305.10601.pdf
@@ -24,14 +24,30 @@ class EchoBot(PoeBot):
         self, request: QueryRequest
     ) -> AsyncIterable[PartialResponse]:
         last_message = request.query[-1].content
-        stub.nfs = modal.NetworkFileSystem.persisted(f"vol-{request.conversation_id}")
-        sb = stub.spawn_sandbox(last_message, network_file_systems={"/cache": stub.nfs})
+        stub.nfs = modal.NetworkFileSystem.persisted(f"vol-{request.user_id}")
+        sb = stub.spawn_sandbox(
+            "bash",
+            "-c",
+            f"cd /cache && {last_message}",
+            network_file_systems={f"/cache": stub.nfs})
         sb.wait()
 
         output = sb.stdout.read()
         error = sb.stderr.read()
-        yield PartialResponse(text=f"""```output\n{output}\n```\n\n""")
-        yield PartialResponse(text=f"""```error\n{error}\n```""")
+
+        nothing_returned = True
+
+        if output:
+            yield PartialResponse(text=f"""```output\n{output}\n```""")
+            nothing_returned = False
+        if output and error:
+            yield PartialResponse(text=f"""\n\n""")
+        if error:
+            yield PartialResponse(text=f"""```error\n{error}\n```""")
+            nothing_returned = False
+
+        if nothing_returned:
+            yield PartialResponse(text=f"""No output or error returned.""")
 
 
 # specific to hosting with modal.com
