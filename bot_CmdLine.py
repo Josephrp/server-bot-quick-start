@@ -8,6 +8,7 @@ echo z > a.txt
 cat a.txt
 
 """
+
 from __future__ import annotations
 
 from typing import AsyncIterable
@@ -16,6 +17,7 @@ from fastapi_poe import PoeBot, make_app
 from fastapi_poe.types import PartialResponse, QueryRequest
 from modal import Image, Stub, asgi_app
 import modal
+import os
 
 
 class EchoBot(PoeBot):
@@ -50,7 +52,11 @@ class EchoBot(PoeBot):
 
 
 # specific to hosting with modal.com
-image = Image.debian_slim().pip_install_from_requirements("requirements_CommandShell.txt")
+image = Image.debian_slim().pip_install_from_requirements("requirements_CommandShell.txt").env(
+    {
+        "POE_API_KEY": os.environ["POE_API_KEY"],
+    }
+)
 stub = Stub("poe-bot-quickstart")
 
 bot = EchoBot()
