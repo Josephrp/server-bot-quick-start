@@ -1,12 +1,11 @@
 """
 
-Sample bot that echoes back messages.
-
 modal deploy --name CmdLine bot_CmdLine.py
 curl -X POST https://api.poe.com/bot/fetch_settings/CmdLine/$POE_API_KEY
 
 Test message:
-What is the difference between https://arxiv.org/pdf/2201.11903.pdf and https://arxiv.org/pdf/2305.10601.pdf
+echo z > a.txt
+cat a.txt
 
 """
 from __future__ import annotations
@@ -59,5 +58,5 @@ bot = EchoBot()
 @stub.function(image=image)
 @asgi_app()
 def fastapi_app():
-    app = make_app(bot, allow_without_key=True)
+    app = make_app(bot, api_key=os.environ["POE_API_KEY"])
     return app
