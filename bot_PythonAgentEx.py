@@ -19,18 +19,15 @@ import requests
 
 import modal
 from fastapi_poe import PoeBot, make_app
+from fastapi_poe.client import MetaMessage, stream_request
 from fastapi_poe.types import PartialResponse, QueryRequest, SettingsResponse
 from modal import Image, Stub, asgi_app
 
 
-def strip_code(code):
-    if len(code.strip()) < 6:
-        return code
-    code = code.strip()
-    if code.startswith("```") and code.endswith("```"):
-        code = code[3:-3]
-    return code
-
+def extract_code(reply):
+    pattern = r"```python([\s\S]*?)```"
+    matches = re.findall(pattern, reply)
+    return "\n\n".join(matches)
 
 
 class EchoBot(PoeBot):
@@ -38,6 +35,31 @@ class EchoBot(PoeBot):
         self, request: QueryRequest
     ) -> AsyncIterable[PartialResponse]:
         last_message = request.query[-1].content
+
+        for query in request.query:
+            for attachment in query.attachments:
+                query.content += f"\n\nThe user has provided {attachment.name}"
+
+        current_message = ""
+        async for msg in stream_request(request, "CheckPythonTool", request.api_key):
+            # Note: See https://poe.com/CheckPythonTool for the prompt
+            if isinstance(msg, MetaMessage):
+                continue
+            elif msg.is_suggested_reply:
+                yield self.suggested_reply_event(msg.text)
+            elif msg.is_replace_response:
+                yield self.replace_response_event(msg.text)
+            else:
+                current_message += msg.text
+                yield self.replace_response_event(current_message)
+
+        code = extract_code(current_message)
+        print("code")
+        print(code)
+
+        if not code:
+            return
+
         vol = modal.NetworkFileSystem.lookup(f"vol-{request.user_id}")
 
         for attachment in request.query[-1].attachments:
@@ -46,7 +68,6 @@ class EchoBot(PoeBot):
                 f.write(r.content)
             vol.add_local_file(attachment.name)
 
-        code = strip_code(last_message)
         with open(f"{request.conversation_id}.py", 'w') as f:
             f.write(code)
 
@@ -57,6 +78,7 @@ class EchoBot(PoeBot):
             "bash",
             "-c",
             f"cd /cache && python {request.conversation_id}.py",
+            image=image_exec,
             network_file_systems={f"/cache": stub.nfs})
         sb.wait()
 
@@ -66,16 +88,14 @@ class EchoBot(PoeBot):
         nothing_returned = True
 
         if output:
-            yield PartialResponse(text=f"""```output\n{output}\n```""")
+            yield PartialResponse(text=f"""\n\n```output\n{output}\n```""")
             nothing_returned = False
-        if output and error:
-            yield PartialResponse(text=f"""\n\n""")
         if error:
-            yield PartialResponse(text=f"""```error\n{error}\n```""")
+            yield PartialResponse(text=f"""\n\n```error\n{error}\n```""")
             nothing_returned = False
 
         if nothing_returned:
-            yield PartialResponse(text=f"""No output or error returned.""")
+            yield PartialResponse(text=f"""\n\nNo output or error returned.""")
 
 
     async def get_settings(self, setting: SettingsRequest) -> SettingsResponse:
@@ -90,6 +110,49 @@ image = Image.debian_slim().pip_install_from_requirements("requirements_PythonAg
     {
         "POE_API_KEY": os.environ["POE_API_KEY"],
     }
+)
+image_exec = Image.debian_slim().pip_install(
+    "fastapi-poe==0.0.19",
+    "huggingface-hub==0.16.4",
+    "ipython",
+    "scipy",
+    "matplotlib",
+    "scikit-learn",
+    "pandas",
+    "ortools",
+    "torch",
+    "torchvision",
+    "tensorflow",
+    "spacy",
+    "transformers",
+    "opencv-python-headless",
+    "nltk",
+    "openai",
+    "requests",
+    "beautifulsoup4",
+    "newspaper3k",
+    "feedparser",
+    "sympy",
+    "tensorflow",
+    "cartopy",
+    "wordcloud",
+    "gensim",
+    "keras",
+    "librosa",
+    "XlsxWriter",
+    "docx2txt",
+    "markdownify",
+    "pdfminer.six",
+    "Pillow",
+    "opencv-python",
+    "sortedcontainers",
+    "intervaltree",
+    "geopandas",
+    "basemap",
+    "tiktoken",
+    "basemap-data-hires",
+    "cartopy",
+    "yfinance",
 )
 stub = Stub("poe-bot-quickstart")
 
