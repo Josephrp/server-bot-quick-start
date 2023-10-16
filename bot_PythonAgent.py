@@ -103,6 +103,8 @@ class EchoBot(PoeBot):
             else:
                 current_message += msg.text
                 yield self.replace_response_event(current_message)
+                if extract_code(current_message):
+                    break
 
         code = extract_code(current_message)
         print("code")

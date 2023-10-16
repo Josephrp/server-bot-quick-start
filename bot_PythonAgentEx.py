@@ -4,8 +4,8 @@ modal deploy --name PythonAgentEx bot_PythonAgentEx.py
 curl -X POST https://api.poe.com/bot/fetch_settings/PythonAgentEx/$POE_API_KEY
 
 Test message:
-echo z > a.txt
-cat a.txt
+download and save wine dataset
+list directory
 
 """
 
@@ -33,8 +33,6 @@ def extract_code(reply):
 
 def wrap_session(code):
     code = "\n".join(" "*12 + line for line in code.split("\n"))
-
-    print(code)
 
     # there might be issues with multiline string
     # maybe exec resolves this issue
@@ -78,15 +76,17 @@ class EchoBot(PoeBot):
             else:
                 current_message += msg.text
                 yield self.replace_response_event(current_message)
+                if extract_code(current_message):
+                    break
 
         code = extract_code(current_message)
+        if not code:
+            return
         code = wrap_session(code)
 
         print("code")
         print(code)
 
-        if not code:
-            return
 
         vol = modal.NetworkFileSystem.lookup(f"vol-{request.user_id}")
 
@@ -96,16 +96,16 @@ class EchoBot(PoeBot):
                 f.write(r.content)
             vol.add_local_file(attachment.name)
 
-        with open(f"{request.conversation_id}.py", 'w') as f:
+        with open(f"{request.user_id}.py", 'w') as f:
             f.write(code)
 
-        vol.add_local_file(f"{request.conversation_id}.py", f"{request.conversation_id}.py")
+        vol.add_local_file(f"{request.user_id}.py", f"{request.user_id}.py")
 
         stub.nfs = modal.NetworkFileSystem.persisted(f"vol-{request.user_id}")
         sb = stub.spawn_sandbox(
             "bash",
             "-c",
-            f"cd /cache && python {request.conversation_id}.py",
+            f"cd /cache && python {request.user_id}.py",
             image=image_exec,
             network_file_systems={f"/cache": stub.nfs})
         sb.wait()
