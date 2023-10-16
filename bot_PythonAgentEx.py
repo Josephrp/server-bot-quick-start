@@ -17,6 +17,7 @@ import os
 import re
 import requests
 
+import textwrap
 import modal
 from fastapi_poe import PoeBot, make_app
 from fastapi_poe.client import MetaMessage, stream_request
@@ -28,6 +29,31 @@ def extract_code(reply):
     pattern = r"```python([\s\S]*?)```"
     matches = re.findall(pattern, reply)
     return "\n\n".join(matches)
+
+
+def wrap_session(code):
+    code = "\n".join(" "*12 + line for line in code.split("\n"))
+
+    print(code)
+
+    # there might be issues with multiline string
+    # maybe exec resolves this issue
+    return textwrap.dedent(
+        f"""\
+        import dill, os
+        if os.path.exists("state.dill"):
+            with open("state.dill", 'rb') as f:
+                dill.load_session(f)
+        try:
+            {code}
+        except Exception as e:
+            with open('state.dill', 'wb') as f:
+                dill.dump_session(f)
+            raise e
+        with open('state.dill', 'wb') as f:
+            dill.dump_session(f)
+        """
+    )
 
 
 class EchoBot(PoeBot):
@@ -54,6 +80,8 @@ class EchoBot(PoeBot):
                 yield self.replace_response_event(current_message)
 
         code = extract_code(current_message)
+        code = wrap_session(code)
+
         print("code")
         print(code)
 
@@ -153,6 +181,7 @@ image_exec = Image.debian_slim().pip_install(
     "basemap-data-hires",
     "cartopy",
     "yfinance",
+    "dill",
 )
 stub = Stub("poe-bot-quickstart")
 
