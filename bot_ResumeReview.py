@@ -24,7 +24,7 @@ from fastapi_poe.types import QueryRequest, SettingsRequest, SettingsResponse
 from sse_starlette.sse import ServerSentEvent
 from fastapi_poe.client import MetaMessage, stream_request
 
-import fastapi_poe
+import fastapi_poe.client
 fastapi_poe.client.MAX_EVENT_COUNT = 10000
 
 async def parse_pdf_document_from_url(pdf_url: str) -> tuple[bool, str]:
