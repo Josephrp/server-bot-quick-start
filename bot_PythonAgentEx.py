@@ -60,6 +60,20 @@ class EchoBot(PoeBot):
     ) -> AsyncIterable[PartialResponse]:
         last_message = request.query[-1].content
 
+        # procedure to create volume if it does not exist
+        # tried other ways to write a code but has hydration issues
+        try:
+            vol = modal.NetworkFileSystem.lookup(f"vol-{request.user_id}")
+        except:
+            stub.nfs = modal.NetworkFileSystem.persisted(f"vol-{request.user_id}")
+            sb = stub.spawn_sandbox(
+                "bash",
+                "-c",
+                "cd /cache",
+                network_file_systems={f"/cache": stub.nfs})
+            sb.wait()
+            vol = modal.NetworkFileSystem.lookup(f"vol-{request.user_id}")
+
         for query in request.query:
             for attachment in query.attachments:
                 query.content += f"\n\nThe user has provided {attachment.name}"
