@@ -56,7 +56,7 @@ class EchoBot(PoeBot):
         code = strip_code(code)
         try:
             f = modal.Function.lookup("run-python-code-shared", "execute_code")
-            captured_output = f.call(code)  # need async await?
+            captured_output = f.remote(code)  # need async await?
         except modal.exception.TimeoutError:
             yield self.text_event("Time limit exceeded.")
             return

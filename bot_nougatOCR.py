@@ -35,7 +35,7 @@ class EchoBot(PoeBot):
 
         try:
             f = modal.Function.lookup("ocr-shared", "nougat_ocr")
-            captured_output = f.call(content_url)  # need async await?
+            captured_output = f.remote(content_url)  # need async await?
         except modal.exception.TimeoutError:
             yield self.replace_response_event("Time limit exceeded.")
             return
