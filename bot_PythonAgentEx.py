@@ -21,7 +21,7 @@ import textwrap
 import modal
 from fastapi_poe import PoeBot, make_app
 from fastapi_poe.client import MetaMessage, stream_request
-from fastapi_poe.types import PartialResponse, QueryRequest, SettingsResponse
+from fastapi_poe.types import PartialResponse, QueryRequest, SettingsResponse, ProtocolMessage
 from modal import Image, Stub, asgi_app
 
 
@@ -76,73 +76,100 @@ class EchoBot(PoeBot):
 
         for query in request.query:
             for attachment in query.attachments:
-                query.content += f"\n\nThe user has provided {attachment.name}"
+                query.content += f"\n\nThe user has provided {attachment.name} in the current directory."
 
-        current_message = ""
-        async for msg in stream_request(request, "CheckPythonTool", request.api_key):
-            # Note: See https://poe.com/CheckPythonTool for the prompt
-            if isinstance(msg, MetaMessage):
-                continue
-            elif msg.is_suggested_reply:
-                yield self.suggested_reply_event(msg.text)
-            elif msg.is_replace_response:
-                yield self.replace_response_event(msg.text)
-            else:
-                current_message += msg.text
-                yield self.replace_response_event(current_message)
-                if extract_code(current_message):
-                    break
+        previous_message = ""
+        has_error_previously = False
 
-        code = extract_code(current_message)
-        if not code:
-            return
-        code = wrap_session(code)
+        for code_iteration_count in range(10):
+            current_message = ""
+            
+            if previous_message:
+                message = ProtocolMessage(role="bot", content=previous_message)
+                request.query.append(message)
 
-        print("code")
-        print(code)
+                if has_error_previously:
+                    message = ProtocolMessage(
+                        role="user", 
+                        content="Please fix the error."
+                    )
+                    request.query.append(message)
 
+            async for msg in stream_request(request, "CheckPythonTool", request.api_key):
+                # Note: See https://poe.com/CheckPythonTool for the prompt
+                if isinstance(msg, MetaMessage):
+                    continue
+                elif msg.is_suggested_reply:
+                    yield self.suggested_reply_event(msg.text)
+                elif msg.is_replace_response:
+                    yield self.replace_response_event(msg.text)
+                else:
+                    current_message += msg.text
+                    yield self.text_event(msg.text)
+                    if extract_code(current_message):
+                        break
 
-        vol = modal.NetworkFileSystem.lookup(f"vol-{request.user_id}")
+            if has_error_previously:
+                del request.query[-2]
 
-        for attachment in request.query[-1].attachments:
-            r = requests.get(attachment.url)
-            with open(attachment.name, 'wb') as f:
-                f.write(r.content)
-            vol.add_local_file(attachment.name)
+            code = extract_code(current_message)
+            if not code:
+                return
+            code = wrap_session(code)
 
-        with open(f"{request.user_id}.py", 'w') as f:
-            f.write(code)
+            print("code")
+            print(code)
 
-        vol.add_local_file(f"{request.user_id}.py", f"{request.user_id}.py")
+            vol = modal.NetworkFileSystem.lookup(f"vol-{request.user_id}")
 
-        stub.nfs = modal.NetworkFileSystem.persisted(f"vol-{request.user_id}")
-        sb = stub.spawn_sandbox(
-            "bash",
-            "-c",
-            f"cd /cache && python {request.user_id}.py",
-            image=image_exec,
-            network_file_systems={f"/cache": stub.nfs})
-        sb.wait()
+            for attachment in request.query[-1].attachments:
+                r = requests.get(attachment.url)
+                with open(attachment.name, 'wb') as f:
+                    f.write(r.content)
+                vol.add_local_file(attachment.name)
 
-        output = sb.stdout.read()
-        error = sb.stderr.read()
+            with open(f"{request.user_id}.py", 'w') as f:
+                f.write(code)
 
-        nothing_returned = True
+            vol.add_local_file(f"{request.user_id}.py", f"{request.user_id}.py")
 
-        if output:
-            yield PartialResponse(text=f"""\n\n```output\n{output}\n```""")
-            nothing_returned = False
-        if error:
-            yield PartialResponse(text=f"""\n\n```error\n{error}\n```""")
-            nothing_returned = False
+            stub.nfs = modal.NetworkFileSystem.persisted(f"vol-{request.user_id}")
+            sb = stub.spawn_sandbox(
+                "bash",
+                "-c",
+                f"cd /cache && python {request.user_id}.py",
+                image=image_exec,
+                network_file_systems={f"/cache": stub.nfs})
+            sb.wait()
 
-        if nothing_returned:
-            yield PartialResponse(text=f"""\n\nNo output or error returned.""")
+            output = sb.stdout.read()
+            error = sb.stderr.read()
+
+            nothing_returned = True
+            has_error_previously = False
+
+            if output:
+                output_string = f"""\n\n```output\n{output}\n```\n\n"""
+                yield PartialResponse(text=output_string)
+                current_message += output_string
+                nothing_returned = False
+            if error:
+                error_string = f"""\n\n```error\n{error}\n```\n\n"""
+                yield PartialResponse(text=error_string)
+                current_message += error_string
+                nothing_returned = False
+                has_error_previously = True
+
+            if nothing_returned:
+                yield PartialResponse(text=f"""\n\nCode executed without output or error.""")
+                break
+            
+            previous_message = current_message
 
 
     async def get_settings(self, setting: SettingsRequest) -> SettingsResponse:
         return SettingsResponse(
-            server_bot_dependencies={"CheckPythonTool": 1},
+            server_bot_dependencies={"CheckPythonTool": 10},
             allow_attachments=True,  # to update when ready
         )
 
