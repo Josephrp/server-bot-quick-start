@@ -31,24 +31,41 @@ def extract_code(reply):
     return "\n\n".join(matches)
 
 
-def wrap_session(code):
+def wrap_session(code, conversation_id):
     code = "\n".join(" "*12 + line for line in code.split("\n"))
 
     # there might be issues with multiline string
     # maybe exec resolves this issue
     return textwrap.dedent(
         f"""\
-        import dill, os
-        if os.path.exists("state.dill"):
-            with open("state.dill", 'rb') as f:
-                dill.load_session(f)
+        import matplotlib.pyplot as plt
+        from matplotlib.pyplot import savefig
+
+        def save_image(filename):
+            def decorator(func):
+                def wrapper(*args, **kwargs):
+                    func(*args, **kwargs)
+                    savefig(filename)
+                return wrapper
+            return decorator
+
+        plt.show = save_image('image.png')(plt.show)
+        plt.savefig = save_image('image.png')(plt.savefig)
+
+        import dill, os, pickle
+        if os.path.exists("{conversation_id}.dill"):
+            try:
+                with open("{conversation_id}.dill", 'rb') as f:
+                    dill.load_session(f)
+            except pickle.UnpicklingError:
+                pass
         try:
             {code}
         except Exception as e:
-            with open('state.dill', 'wb') as f:
+            with open('{conversation_id}.dill', 'wb') as f:
                 dill.dump_session(f)
             raise e
-        with open('state.dill', 'wb') as f:
+        with open('{conversation_id}.dill', 'wb') as f:
             dill.dump_session(f)
         """
     )
@@ -59,6 +76,7 @@ class EchoBot(PoeBot):
         self, request: QueryRequest
     ) -> AsyncIterable[PartialResponse]:
         last_message = request.query[-1].content
+        request.logit_bias = {"21362": -10}  # censor "![", but does this work?
 
         # procedure to create volume if it does not exist
         # tried other ways to write a code but has hydration issues
@@ -82,8 +100,9 @@ class EchoBot(PoeBot):
         has_error_previously = False
 
         for code_iteration_count in range(10):
+            print("code_iteration_count", code_iteration_count, has_error_previously)
             current_message = ""
-            
+
             if previous_message:
                 message = ProtocolMessage(role="bot", content=previous_message)
                 request.query.append(message)
@@ -95,7 +114,7 @@ class EchoBot(PoeBot):
                     )
                     request.query.append(message)
 
-            async for msg in stream_request(request, "CheckPythonTool", request.api_key):
+            async for msg in stream_request(request, "PythonAgentTool", request.api_key):
                 # Note: See https://poe.com/CheckPythonTool for the prompt
                 if isinstance(msg, MetaMessage):
                     continue
@@ -104,6 +123,7 @@ class EchoBot(PoeBot):
                 elif msg.is_replace_response:
                     yield self.replace_response_event(msg.text)
                 else:
+                    print(current_message)
                     current_message += msg.text
                     yield self.text_event(msg.text)
                     if extract_code(current_message):
@@ -115,7 +135,7 @@ class EchoBot(PoeBot):
             code = extract_code(current_message)
             if not code:
                 return
-            code = wrap_session(code)
+            code = wrap_session(code, conversation_id=request.conversation_id)
 
             print("code")
             print(code)
@@ -145,6 +165,26 @@ class EchoBot(PoeBot):
             output = sb.stdout.read()
             error = sb.stderr.read()
 
+            print("len(output)", len(output))
+            print("len(error)", len(error))
+
+            image_url = None
+            # some roundabout way to check if image file is in directory
+            if any("image.png" in str(entry) for entry in vol.listdir("*")):
+                with open("image.png", "wb") as f:
+                    for chunk in vol.read_file("image.png"):
+                        f.write(chunk)
+
+                image_data = None
+                with open("image.png", "rb") as f:
+                    image_data = f.read()
+
+                print("len(image_data)", len(image_data))
+                if image_data:
+                    f = modal.Function.lookup("image-upload-shared", "upload_file")
+                    image_url = f.remote(image_data, "image.png")
+                    vol.remove_file("image.png")
+
             nothing_returned = True
             has_error_previously = False
 
@@ -159,6 +199,15 @@ class EchoBot(PoeBot):
                 current_message += error_string
                 nothing_returned = False
                 has_error_previously = True
+            if image_url:
+                image_string = f"\n\n![image]({image_url})\n\n"
+                print("image_url")
+                print(image_url)
+                current_message += image_string
+                yield self.text_event(image_string)
+                nothing_returned = False
+                if has_error_previously is False:
+                    break
 
             if nothing_returned:
                 yield PartialResponse(text=f"""\n\nCode executed without output or error.""")
@@ -169,7 +218,7 @@ class EchoBot(PoeBot):
 
     async def get_settings(self, setting: SettingsRequest) -> SettingsResponse:
         return SettingsResponse(
-            server_bot_dependencies={"CheckPythonTool": 10},
+            server_bot_dependencies={"PythonAgentTool": 10},
             allow_attachments=True,  # to update when ready
         )
 
