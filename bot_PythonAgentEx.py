@@ -1,7 +1,7 @@
 """
 
-modal deploy --name PythonAgent bot_PythonAgent.py
-curl -X POST https://api.poe.com/bot/fetch_settings/PythonAgent/$POE_API_KEY
+modal deploy --name PythonAgentEx bot_PythonAgentEx.py
+curl -X POST https://api.poe.com/bot/fetch_settings/PythonAgentEx/$POE_API_KEY
 
 Test message:
 download and save wine dataset
@@ -114,7 +114,7 @@ class EchoBot(PoeBot):
                     )
                     request.query.append(message)
 
-            async for msg in stream_request(request, "PythonAgentTool", request.api_key):
+            async for msg in stream_request(request, "PythonAgentExTool", request.api_key):
                 # Note: See https://poe.com/CheckPythonTool for the prompt
                 if isinstance(msg, MetaMessage):
                     continue
@@ -217,7 +217,7 @@ class EchoBot(PoeBot):
 
     async def get_settings(self, setting: SettingsRequest) -> SettingsResponse:
         return SettingsResponse(
-            server_bot_dependencies={"PythonAgentTool": 10},
+            server_bot_dependencies={"PythonAgentExTool": 10},
             allow_attachments=True,  # to update when ready
         )
 
