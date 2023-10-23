@@ -192,7 +192,7 @@ image = Image.debian_slim().pip_install_from_requirements("requirements_PythonAg
     }
 )
 image_exec = Image.debian_slim().pip_install(
-    "fastapi-poe==0.0.19",
+    "fastapi-poe==0.0.23",
     "huggingface-hub==0.16.4",
     "ipython",
     "scipy",

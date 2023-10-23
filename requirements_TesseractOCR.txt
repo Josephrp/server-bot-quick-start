@@ -1,4 +1,4 @@
-fastapi-poe==0.0.19
+fastapi-poe==0.0.23
 huggingface-hub==0.16.4
 requests==2.31.0
 pdftotext==2.2.2
