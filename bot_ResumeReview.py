@@ -10,6 +10,7 @@ https://pjreddie.com/static/Redmon%20Resume.pdf
 """
 from __future__ import annotations
 
+import os
 from io import BytesIO
 from typing import AsyncIterable
 
@@ -17,9 +18,10 @@ import fastapi_poe.client
 import pdftotext
 import requests
 from docx import Document
-from fastapi_poe import PoeBot
+from fastapi_poe import PoeBot, make_app
 from fastapi_poe.client import MetaMessage, stream_request
 from fastapi_poe.types import QueryRequest, SettingsRequest, SettingsResponse
+from modal import Image, Stub, asgi_app
 from sse_starlette.sse import ServerSentEvent
 
 fastapi_poe.client.MAX_EVENT_COUNT = 10000
@@ -155,10 +157,6 @@ class EchoBot(PoeBot):
 # comment/uncomment any of the following code to try out other example bots or build on top
 # of the EchoBot.
 
-import os
-
-from fastapi_poe import make_app
-from modal import Image, Stub, asgi_app
 
 # Echo bot is a very simple bot that just echoes back the user's last message.
 bot = EchoBot()

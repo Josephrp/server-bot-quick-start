@@ -30,7 +30,7 @@ class EchoBot(PoeBot):
             "bash",
             "-c",
             f"cd /cache && {last_message}",
-            network_file_systems={f"/cache": stub.nfs},
+            network_file_systems={"/cache": stub.nfs},
         )
         sb.wait()
 
@@ -43,13 +43,13 @@ class EchoBot(PoeBot):
             yield PartialResponse(text=f"""```output\n{output}\n```""")
             nothing_returned = False
         if output and error:
-            yield PartialResponse(text=f"""\n\n""")
+            yield PartialResponse(text="""\n\n""")
         if error:
             yield PartialResponse(text=f"""```error\n{error}\n```""")
             nothing_returned = False
 
         if nothing_returned:
-            yield PartialResponse(text=f"""No output or error returned.""")
+            yield PartialResponse(text="""No output or error returned.""")
 
 
 # specific to hosting with modal.com

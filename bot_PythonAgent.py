@@ -23,6 +23,7 @@ from fastapi_poe.types import (
     PartialResponse,
     ProtocolMessage,
     QueryRequest,
+    SettingsRequest,
     SettingsResponse,
 )
 from modal import Image, Stub, asgi_app
@@ -123,7 +124,7 @@ class PythonAgentBot(PoeBot):
         except:
             stub.nfs = modal.NetworkFileSystem.persisted(f"vol-{request.user_id}")
             sb = stub.spawn_sandbox(
-                "bash", "-c", "cd /cache", network_file_systems={f"/cache": stub.nfs}
+                "bash", "-c", "cd /cache", network_file_systems={"/cache": stub.nfs}
             )
             sb.wait()
             vol = modal.NetworkFileSystem.lookup(f"vol-{request.user_id}")
@@ -183,7 +184,7 @@ class PythonAgentBot(PoeBot):
                 "-c",
                 f"cd /cache && python {request.user_id}.py",
                 image=image_exec,
-                network_file_systems={f"/cache": stub.nfs},
+                network_file_systems={"/cache": stub.nfs},
             )
             sb.wait()
 

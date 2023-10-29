@@ -29,7 +29,7 @@ def nougat_ocr(url):
         f"wget -O {local_filename} {url} && nougat {local_filename} --out output --pages 1"
     )
 
-    with open(f"output/downloaded.mmd") as f:
+    with open("output/downloaded.mmd") as f:
         output = f.read()
 
     return output

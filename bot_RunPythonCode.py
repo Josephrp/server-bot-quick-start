@@ -12,9 +12,9 @@ from typing import AsyncIterable
 
 import fastapi_poe.client
 import modal
-from fastapi_poe import PoeBot
+from fastapi_poe import PoeBot, make_app
 from fastapi_poe.types import QueryRequest, SettingsRequest, SettingsResponse
-from modal import Stub
+from modal import Image, Stub, asgi_app
 from sse_starlette.sse import ServerSentEvent
 
 fastapi_poe.client.MAX_EVENT_COUNT = 10000
@@ -83,9 +83,6 @@ class EchoBot(PoeBot):
 # a bot running. By default, the starter code uses the EchoBot, which is a simple bot that echos
 # a message back at its user and is a good starting point for your bot, but you can
 # comment/uncomment any of the following code to try out other example bots.
-
-from fastapi_poe import make_app
-from modal import Image, Stub, asgi_app
 
 # Echo bot is a very simple bot that just echoes back the user's last message.
 bot = EchoBot()

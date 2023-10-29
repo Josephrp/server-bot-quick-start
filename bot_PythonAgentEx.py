@@ -10,9 +10,10 @@ list directory
 
 import os
 
+from fastapi_poe import make_app
 from modal import Stub, asgi_app
 
-from bot_PythonAgent import PythonAgentBot
+from bot_PythonAgent import PythonAgentBot, image_bot
 
 bot = PythonAgentBot()
 bot.prompt_bot = "PythonAgentExTool"

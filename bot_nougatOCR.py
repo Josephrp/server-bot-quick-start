@@ -9,16 +9,18 @@ https://pjreddie.com/static/Redmon%20Resume.pdf
 """
 from __future__ import annotations
 
+import os
 from typing import AsyncIterable
 
 import fastapi_poe.client
-from fastapi_poe import PoeBot
+import modal
+from fastapi_poe import PoeBot, make_app
 from fastapi_poe.types import QueryRequest, SettingsRequest, SettingsResponse
+from modal import Image, Stub, asgi_app
 from sse_starlette.sse import ServerSentEvent
 
 fastapi_poe.client.MAX_EVENT_COUNT = 10000
 
-import modal
 
 # https://modalbetatesters.slack.com/archives/C031Z7H15DG/p1675177408741889?thread_ts=1675174647.477169&cid=C031Z7H15DG
 modal.app._is_container_app = False
@@ -59,11 +61,6 @@ class EchoBot(PoeBot):
 # echos a message back at its user and is a good starting point for your bot, but you can
 # comment/uncomment any of the following code to try out other example bots or build on top
 # of the EchoBot.
-
-import os
-
-from fastapi_poe import make_app
-from modal import Image, Stub, asgi_app
 
 # Echo bot is a very simple bot that just echoes back the user's last message.
 bot = EchoBot()
