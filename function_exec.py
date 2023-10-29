@@ -12,7 +12,9 @@ from io import StringIO
 
 from modal import Image, Stub
 
-image = Image.debian_slim().pip_install_from_requirements("requirements_function_exec.txt")
+image = Image.debian_slim().pip_install_from_requirements(
+    "requirements_function_exec.txt"
+)
 stub = Stub("run-python-code-shared")
 
 

@@ -12,12 +12,12 @@ from __future__ import annotations
 import difflib
 from typing import AsyncIterable
 
-from fastapi_poe import PoeBot, run
+import fastapi_poe.client
+from fastapi_poe import PoeBot
 from fastapi_poe.client import MetaMessage, stream_request
 from fastapi_poe.types import QueryRequest, SettingsRequest, SettingsResponse
 from sse_starlette.sse import ServerSentEvent
 
-import fastapi_poe.client
 fastapi_poe.client.MAX_EVENT_COUNT = 10000
 
 LANGUAGE_PROMPT_TEMPLATE = """
@@ -75,15 +75,16 @@ class EchoBot(PoeBot):
                 character_reply += msg.text
                 rendered_text = markdown_diff(user_statement, character_reply)
                 yield self.replace_response_event(rendered_text)
-        
+
         print("character_reply", character_reply)
 
     async def get_settings(self, setting: SettingsRequest) -> SettingsResponse:
         return SettingsResponse(
             server_bot_dependencies={"EnglishDiffTool": 1},
             allow_attachments=False,
-            introduction_message="This bot will reply you the statement you made, with the language corrected."
+            introduction_message="This bot will reply you the statement you made, with the language corrected.",
         )
+
 
 # Welcome to the Poe API tutorial. The starter code provided provides you with a quick way to get
 # a bot running. By default, the starter code uses the EchoBot, which is a simple bot that echos
@@ -114,7 +115,9 @@ bot = EchoBot()
 # bot = HuggingFaceBot("microsoft/DialoGPT-medium")
 
 # The following is setup code that is required to host with modal.com
-image = Image.debian_slim().pip_install_from_requirements("requirements_EnglishDiffBot.txt")
+image = Image.debian_slim().pip_install_from_requirements(
+    "requirements_EnglishDiffBot.txt"
+)
 # Rename "poe-bot-quickstart" to your preferred app name.
 stub = Stub("poe-bot-quickstart")
 

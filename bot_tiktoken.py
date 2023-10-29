@@ -11,22 +11,28 @@ from __future__ import annotations
 
 from typing import AsyncIterable
 
+import fastapi_poe.client
 from fastapi_poe import PoeBot
 from fastapi_poe.types import QueryRequest
 from sse_starlette.sse import ServerSentEvent
 
-import fastapi_poe.client
 fastapi_poe.client.MAX_EVENT_COUNT = 10000
 
 import tiktoken
 
 encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
 
+
 class EchoBot(PoeBot):
     async def get_response(self, query: QueryRequest) -> AsyncIterable[ServerSentEvent]:
         last_message = query.query[-1].content
         tokens = encoding.encode(last_message)
-        last_message = " | ".join([str((encoding.decode_single_token_bytes(token), token))[2:-1] for token in tokens]) 
+        last_message = " | ".join(
+            [
+                str((encoding.decode_single_token_bytes(token), token))[2:-1]
+                for token in tokens
+            ]
+        )
         yield self.text_event(last_message)
 
 
@@ -37,8 +43,6 @@ class EchoBot(PoeBot):
 
 from fastapi_poe import make_app
 from modal import Image, Stub, asgi_app
-
-from catbot import CatBot
 
 # Echo bot is a very simple bot that just echoes back the user's last message.
 bot = EchoBot()

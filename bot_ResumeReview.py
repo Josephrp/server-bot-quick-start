@@ -10,22 +10,20 @@ https://pjreddie.com/static/Redmon%20Resume.pdf
 """
 from __future__ import annotations
 
-from collections import defaultdict
 from io import BytesIO
 from typing import AsyncIterable
 
+import fastapi_poe.client
 import pdftotext
-import pytesseract
 import requests
-
 from docx import Document
-from fastapi_poe import PoeBot, run
+from fastapi_poe import PoeBot
+from fastapi_poe.client import MetaMessage, stream_request
 from fastapi_poe.types import QueryRequest, SettingsRequest, SettingsResponse
 from sse_starlette.sse import ServerSentEvent
-from fastapi_poe.client import MetaMessage, stream_request
 
-import fastapi_poe.client
 fastapi_poe.client.MAX_EVENT_COUNT = 10000
+
 
 async def parse_pdf_document_from_url(pdf_url: str) -> tuple[bool, str]:
     try:
@@ -39,6 +37,7 @@ async def parse_pdf_document_from_url(pdf_url: str) -> tuple[bool, str]:
         return False, ""
     except BaseException:
         return False, ""
+
 
 async def parse_pdf_document_from_docx(docx_url: str) -> tuple[bool, str]:
     try:
@@ -106,20 +105,28 @@ Do not reproduce the full resume unless asked. You will not evaluate the resume,
 
 class EchoBot(PoeBot):
     async def get_response(self, query: QueryRequest) -> AsyncIterable[ServerSentEvent]:
-
         for query_message in query.query:
             # replace attachment with text
-            if query_message.attachments and query_message.attachments[0].content_type == "application/pdf":
+            if (
+                query_message.attachments
+                and query_message.attachments[0].content_type == "application/pdf"
+            ):
                 content_url = query_message.attachments[0].url
                 print("parsing pdf", content_url)
                 success, resume_string = await parse_pdf_document_from_url(content_url)
-                query_message.content += f"\n\n This is the attached resume: {resume_string}"
+                query_message.content += (
+                    f"\n\n This is the attached resume: {resume_string}"
+                )
 
-            elif query_message.attachments and query_message.attachments[0].content_type.endswith("document"):
+            elif query_message.attachments and query_message.attachments[
+                0
+            ].content_type.endswith("document"):
                 content_url = query_message.attachments[0].url
                 print("parsing docx", content_url)
                 success, resume_string = await parse_pdf_document_from_docx(content_url)
-                query_message.content += f"\n\n This is the attached resume: {resume_string}"
+                query_message.content += (
+                    f"\n\n This is the attached resume: {resume_string}"
+                )
 
         current_message = ""
         async for msg in stream_request(query, "ResumeReviewTool", query.api_key):
@@ -138,7 +145,7 @@ class EchoBot(PoeBot):
         return SettingsResponse(
             server_bot_dependencies={"ResumeReviewTool": 1},
             allow_attachments=True,  # to update when ready
-            introduction_message="Please upload your resume (pdf, docx) and say 'Review this'."
+            introduction_message="Please upload your resume (pdf, docx) and say 'Review this'.",
         )
 
 
@@ -152,9 +159,6 @@ import os
 
 from fastapi_poe import make_app
 from modal import Image, Stub, asgi_app
-
-from catbot import CatBot
-from huggingface_bot import HuggingFaceBot
 
 # Echo bot is a very simple bot that just echoes back the user's last message.
 bot = EchoBot()
@@ -183,11 +187,7 @@ image = (
     .apt_install("libpoppler-cpp-dev")
     .apt_install("tesseract-ocr-eng")
     .pip_install_from_requirements("requirements_ResumeReview.txt")
-).env(
-    {
-        "POE_API_KEY": os.environ["POE_API_KEY"],
-    }
-)
+).env({"POE_API_KEY": os.environ["POE_API_KEY"]})
 stub = Stub("poe-bot-quickstart")
 
 

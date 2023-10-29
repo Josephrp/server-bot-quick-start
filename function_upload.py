@@ -6,12 +6,8 @@ modal deploy function_upload.py
 """
 
 import os
-import sys
-from io import StringIO
 
 from modal import Image, Stub
-
-
 
 image = (
     Image.debian_slim()

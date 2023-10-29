@@ -14,16 +14,15 @@ from io import BytesIO
 from typing import AsyncIterable
 from urllib.parse import urlparse, urlunparse
 
+import fastapi_poe.client
 import pdftotext
 import requests
 from bs4 import BeautifulSoup
-from sse_starlette.sse import ServerSentEvent
-
-from fastapi_poe import PoeBot, run
+from fastapi_poe import PoeBot
 from fastapi_poe.client import MetaMessage, stream_request
 from fastapi_poe.types import QueryRequest, SettingsRequest, SettingsResponse
+from sse_starlette.sse import ServerSentEvent
 
-import fastapi_poe.client
 fastapi_poe.client.MAX_EVENT_COUNT = 10000
 
 url_regex = re.compile(
@@ -147,9 +146,9 @@ class EchoBot(PoeBot):
 
     async def get_settings(self, setting: SettingsRequest) -> SettingsResponse:
         return SettingsResponse(
-            server_bot_dependencies={"ChatGPT": 1},
-            allow_attachments=False,
+            server_bot_dependencies={"ChatGPT": 1}, allow_attachments=False
         )
+
 
 # Welcome to the Poe API tutorial. The starter code provided provides you with a quick way to get
 # a bot running. By default, the starter code uses the EchoBot, which is a simple bot that echos
@@ -183,7 +182,11 @@ bot = EchoBot()
 # app = make_app(bot, api_key=POE_API_KEY)
 
 # specific to hosting with modal.com
-image = Image.debian_slim().apt_install("libpoppler-cpp-dev").pip_install_from_requirements("requirements_LinkAwareBot.txt")
+image = (
+    Image.debian_slim()
+    .apt_install("libpoppler-cpp-dev")
+    .pip_install_from_requirements("requirements_LinkAwareBot.txt")
+)
 stub = Stub("poe-bot-quickstart")
 
 

@@ -9,7 +9,8 @@ list directory
 """
 
 import os
-from modal import Image, Stub, asgi_app
+
+from modal import Stub, asgi_app
 
 from bot_PythonAgent import PythonAgentBot
 
@@ -18,6 +19,7 @@ bot.prompt_bot = "PythonAgentExTool"
 
 stub = Stub()
 bot = PythonAgentBot()
+
 
 @stub.function(image=image_bot)
 @asgi_app()

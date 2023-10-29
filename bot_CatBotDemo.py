@@ -111,15 +111,20 @@ class CatBot(PoeBot):
         """Return the settings for this bot."""
         return SETTINGS
 
-import os
+
 from fastapi_poe import make_app
 from modal import Image, Stub, asgi_app
 
 # specific to hosting with modal.com
-image = Image.debian_slim().pip_install_from_requirements("requirements_CommandShell.txt").env()
+image = (
+    Image.debian_slim()
+    .pip_install_from_requirements("requirements_CommandShell.txt")
+    .env()
+)
 stub = Stub("poe-bot-quickstart")
 
 bot = CatBot()
+
 
 @stub.function(image=image)
 @asgi_app()

@@ -10,17 +10,21 @@ copy some leetcode question
 
 from __future__ import annotations
 
-from typing import AsyncIterable
-
 import os
 import re
-import requests
-
 import textwrap
+from typing import AsyncIterable
+
 import modal
+import requests
 from fastapi_poe import PoeBot, make_app
 from fastapi_poe.client import MetaMessage, stream_request
-from fastapi_poe.types import PartialResponse, QueryRequest, SettingsResponse, ProtocolMessage
+from fastapi_poe.types import (
+    PartialResponse,
+    ProtocolMessage,
+    QueryRequest,
+    SettingsResponse,
+)
 from modal import Image, Stub, asgi_app
 
 
@@ -31,7 +35,7 @@ def extract_code(reply):
 
 
 def wrap_session(code, conversation_id):
-    code = "\n".join(" "*12 + line for line in code.split("\n"))
+    code = "\n".join(" " * 12 + line for line in code.split("\n"))
 
     # there might be issues with multiline string
     # maybe exec resolves this issue
@@ -84,10 +88,8 @@ class EchoBot(PoeBot):
         except:
             stub.nfs = modal.NetworkFileSystem.persisted(f"vol-{request.user_id}")
             sb = stub.spawn_sandbox(
-                "bash",
-                "-c",
-                "cd /cache",
-                network_file_systems={f"/cache": stub.nfs})
+                "bash", "-c", "cd /cache", network_file_systems={f"/cache": stub.nfs}
+            )
             sb.wait()
             vol = modal.NetworkFileSystem.lookup(f"vol-{request.user_id}")
 
@@ -98,8 +100,10 @@ class EchoBot(PoeBot):
         for code_iteration_count in range(10):
             print("code_iteration_count", code_iteration_count)
             current_message = ""
-                    
-            async for msg in stream_request(request, "LeetCodeAgentTool", request.api_key):
+
+            async for msg in stream_request(
+                request, "LeetCodeAgentTool", request.api_key
+            ):
                 # Note: See https://poe.com/CheckPythonTool for the prompt
                 if isinstance(msg, MetaMessage):
                     continue
@@ -125,11 +129,11 @@ class EchoBot(PoeBot):
 
             for attachment in request.query[-1].attachments:
                 r = requests.get(attachment.url)
-                with open(attachment.name, 'wb') as f:
+                with open(attachment.name, "wb") as f:
                     f.write(r.content)
                 vol.add_local_file(attachment.name)
 
-            with open(f"{request.user_id}.py", 'w') as f:
+            with open(f"{request.user_id}.py", "w") as f:
                 f.write(code)
 
             vol.add_local_file(f"{request.user_id}.py", f"{request.user_id}.py")
@@ -140,7 +144,8 @@ class EchoBot(PoeBot):
                 "-c",
                 f"cd /cache && python {request.user_id}.py",
                 image=image_exec,
-                network_file_systems={f"/cache": stub.nfs})
+                network_file_systems={f"/cache": stub.nfs},
+            )
             sb.wait()
 
             output = sb.stdout.read()
@@ -167,16 +172,17 @@ class EchoBot(PoeBot):
                 user_automated_message += error_string + "\n\nPlease fix the error.\n\n"
                 nothing_returned = False
 
-            user_automated_message += textwrap.dedent("""
+            user_automated_message += textwrap.dedent(
+                """
                 Please check if your code passes the test cases.
                 If the output is correct, report success.
                 If the solution is wrong, detail a plan to fix the solution.
                 You can use print statements to debug.
-            """)
-            
+            """
+            )
+
             message = ProtocolMessage(role="bot", content=user_automated_message)
             request.query.append(message)
-
 
     async def get_settings(self, setting: SettingsRequest) -> SettingsResponse:
         return SettingsResponse(
@@ -186,10 +192,10 @@ class EchoBot(PoeBot):
 
 
 # specific to hosting with modal.com
-image = Image.debian_slim().pip_install_from_requirements("requirements_PythonAgentEx.txt").env(
-    {
-        "POE_API_KEY": os.environ["POE_API_KEY"],
-    }
+image = (
+    Image.debian_slim()
+    .pip_install_from_requirements("requirements_PythonAgentEx.txt")
+    .env({"POE_API_KEY": os.environ["POE_API_KEY"]})
 )
 image_exec = Image.debian_slim().pip_install(
     "fastapi-poe==0.0.23",
@@ -238,6 +244,7 @@ image_exec = Image.debian_slim().pip_install(
 stub = Stub("poe-bot-quickstart")
 
 bot = EchoBot()
+
 
 @stub.function(image=image)
 @asgi_app()

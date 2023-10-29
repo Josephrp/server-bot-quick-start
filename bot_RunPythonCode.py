@@ -10,13 +10,13 @@ assert False
 
 from typing import AsyncIterable
 
+import fastapi_poe.client
 import modal
-from fastapi_poe import PoeBot, run
+from fastapi_poe import PoeBot
 from fastapi_poe.types import QueryRequest, SettingsRequest, SettingsResponse
 from modal import Stub
 from sse_starlette.sse import ServerSentEvent
 
-import fastapi_poe.client
 fastapi_poe.client.MAX_EVENT_COUNT = 10000
 
 # https://modalbetatesters.slack.com/archives/C031Z7H15DG/p1675177408741889?thread_ts=1675174647.477169&cid=C031Z7H15DG
@@ -75,8 +75,9 @@ class EchoBot(PoeBot):
         return SettingsResponse(
             server_bot_dependencies={},
             allow_attachments=False,  # to update when ready
-            introduction_message="Please send executable Python code."
+            introduction_message="Please send executable Python code.",
         )
+
 
 # Welcome to the Poe API tutorial. The starter code provided provides you with a quick way to get
 # a bot running. By default, the starter code uses the EchoBot, which is a simple bot that echos
@@ -110,7 +111,9 @@ bot = EchoBot()
 # app = make_app(bot, api_key=POE_API_KEY)
 
 # specific to hosting with modal.com
-image = Image.debian_slim().pip_install_from_requirements("requirements_RunPythonCode.txt")
+image = Image.debian_slim().pip_install_from_requirements(
+    "requirements_RunPythonCode.txt"
+)
 stub = Stub("poe-bot-quickstart")
 
 

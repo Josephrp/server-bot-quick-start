@@ -10,18 +10,17 @@ Cast an explosion
 from __future__ import annotations
 
 import random
-import textwrap
 import re
+import textwrap
 from collections import defaultdict
 from typing import AsyncIterable
 
-from sse_starlette.sse import ServerSentEvent
-
-from fastapi_poe import PoeBot, run
+import fastapi_poe.client
+from fastapi_poe import PoeBot
 from fastapi_poe.client import MetaMessage, stream_request
 from fastapi_poe.types import QueryRequest, SettingsRequest, SettingsResponse
+from sse_starlette.sse import ServerSentEvent
 
-import fastapi_poe.client
 fastapi_poe.client.MAX_EVENT_COUNT = 10000
 
 # introduction to be added https://i.imgur.com/xbXviUO.gif
@@ -69,7 +68,7 @@ This are the available emojis
 
 def redact_image_links(text):
     pattern = r"!\[.*\]\(http.*\)"
-    redacted_text = re.sub(pattern, '', text)
+    redacted_text = re.sub(pattern, "", text)
     return redacted_text
 
 
@@ -139,12 +138,13 @@ class EchoBot(PoeBot):
         return SettingsResponse(
             server_bot_dependencies={"MeguminHelper": 1, "EmojiClassifier": 1},
             allow_attachments=False,
-            introduction_message=textwrap.dedent("""
+            introduction_message=textwrap.dedent(
+                """
             My name is Megumin! My calling is that of an archwizard, one who controls explosion magic, the strongest of all offensive magic!
-            
+
             ![](https://i.imgur.com/xbXviUO.gif)
             """
-            ).strip()
+            ).strip(),
         )
 
 
@@ -155,9 +155,6 @@ class EchoBot(PoeBot):
 
 from fastapi_poe import make_app
 from modal import Image, Stub, asgi_app
-
-from catbot import CatBot
-from huggingface_bot import HuggingFaceBot
 
 # Echo bot is a very simple bot that just echoes back the user's last message.
 bot = EchoBot()
@@ -180,7 +177,9 @@ bot = EchoBot()
 # bot = HuggingFaceBot("microsoft/DialoGPT-medium")
 
 # The following is setup code that is required to host with modal.com
-image = Image.debian_slim().pip_install_from_requirements("requirements_MeguminWizardEx.txt")
+image = Image.debian_slim().pip_install_from_requirements(
+    "requirements_MeguminWizardEx.txt"
+)
 # Rename "poe-bot-quickstart" to your preferred app name.
 stub = Stub("poe-bot-quickstart")
 
@@ -198,4 +197,3 @@ def fastapi_app():
     # app = make_app(bot, api_key=POE_API_KEY)
     app = make_app(bot, allow_without_key=True)
     return app
-

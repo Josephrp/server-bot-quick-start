@@ -11,14 +11,14 @@ Draw USA map
 import re
 from typing import AsyncIterable
 
+import fastapi_poe.client
 import modal
-from fastapi_poe import PoeBot, run
+from fastapi_poe import PoeBot
 from fastapi_poe.client import MetaMessage, stream_request
 from fastapi_poe.types import QueryRequest, SettingsRequest, SettingsResponse
 from modal import Stub
 from sse_starlette.sse import ServerSentEvent
 
-import fastapi_poe.client
 fastapi_poe.client.MAX_EVENT_COUNT = 10000
 
 # https://modalbetatesters.slack.com/archives/C031Z7H15DG/p1675177408741889?thread_ts=1675174647.477169&cid=C031Z7H15DG
@@ -29,7 +29,7 @@ stub = Stub("run-python-code")
 
 def redact_image_links(text):
     pattern = r"!\[.*\]\(http.*\)"
-    redacted_text = re.sub(pattern, '', text)
+    redacted_text = re.sub(pattern, "", text)
     return redacted_text
 
 
@@ -127,9 +127,9 @@ class EchoBot(PoeBot):
 
     async def get_settings(self, setting: SettingsRequest) -> SettingsResponse:
         return SettingsResponse(
-            server_bot_dependencies={"matplotlibTool": 1},
-            allow_attachments=False,
+            server_bot_dependencies={"matplotlibTool": 1}, allow_attachments=False
         )
+
 
 # Welcome to the Poe API tutorial. The starter code provided provides you with a quick way to get
 # a bot running. By default, the starter code uses the EchoBot, which is a simple bot that echos
@@ -178,5 +178,3 @@ stub = Stub("poe-bot-quickstart")
 def fastapi_app():
     app = make_app(bot, api_key=os.environ["POE_API_KEY"])
     return app
-
-

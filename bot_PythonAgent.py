@@ -10,17 +10,21 @@ list directory
 
 from __future__ import annotations
 
-from typing import AsyncIterable
-
 import os
 import re
-import requests
-
 import textwrap
+from typing import AsyncIterable
+
 import modal
+import requests
 from fastapi_poe import PoeBot, make_app
 from fastapi_poe.client import MetaMessage, stream_request
-from fastapi_poe.types import PartialResponse, QueryRequest, SettingsResponse, ProtocolMessage
+from fastapi_poe.types import (
+    PartialResponse,
+    ProtocolMessage,
+    QueryRequest,
+    SettingsResponse,
+)
 from modal import Image, Stub, asgi_app
 
 
@@ -119,10 +123,8 @@ class PythonAgentBot(PoeBot):
         except:
             stub.nfs = modal.NetworkFileSystem.persisted(f"vol-{request.user_id}")
             sb = stub.spawn_sandbox(
-                "bash",
-                "-c",
-                "cd /cache",
-                network_file_systems={f"/cache": stub.nfs})
+                "bash", "-c", "cd /cache", network_file_systems={f"/cache": stub.nfs}
+            )
             sb.wait()
             vol = modal.NetworkFileSystem.lookup(f"vol-{request.user_id}")
 
@@ -133,7 +135,7 @@ class PythonAgentBot(PoeBot):
         # upload files in latest user message
         for attachment in request.query[-1].attachments:
             r = requests.get(attachment.url)
-            with open(attachment.name, 'wb') as f:
+            with open(attachment.name, "wb") as f:
                 f.write(r.content)
             vol.add_local_file(attachment.name)
 
@@ -141,7 +143,9 @@ class PythonAgentBot(PoeBot):
             print("code_iteration_count", code_iteration_count)
 
             current_bot_reply = ""
-            async for msg in stream_request(request, "PythonAgentTool", request.api_key):
+            async for msg in stream_request(
+                request, "PythonAgentTool", request.api_key
+            ):
                 if isinstance(msg, MetaMessage):
                     continue
                 elif msg.is_suggested_reply:
@@ -162,13 +166,13 @@ class PythonAgentBot(PoeBot):
             code = extract_code(current_bot_reply)
             if not code:
                 return
-            
-            # prepare code for execution 
+
+            # prepare code for execution
             print("len(code)", code)
             code = wrap_session(code, conversation_id=request.conversation_id)
 
             # upload python script
-            with open(f"{request.user_id}.py", 'w') as f:
+            with open(f"{request.user_id}.py", "w") as f:
                 f.write(code)
             vol.add_local_file(f"{request.user_id}.py", f"{request.user_id}.py")
 
@@ -179,7 +183,8 @@ class PythonAgentBot(PoeBot):
                 "-c",
                 f"cd /cache && python {request.user_id}.py",
                 image=image_exec,
-                network_file_systems={f"/cache": stub.nfs})
+                network_file_systems={f"/cache": stub.nfs},
+            )
             sb.wait()
 
             output = sb.stdout.read()
@@ -192,18 +197,26 @@ class PythonAgentBot(PoeBot):
 
             current_user_simulated_reply = ""
             if output and error:
-                yield PartialResponse(text=textwrap.dedent(f"\n\n```output\n{output}```\n\n"))
-                yield PartialResponse(text=textwrap.dedent(f"\n\n```error\n{error}```\n\n"))
-                current_user_simulated_reply = SIMULATED_USER_REPLY_OUTPUT_AND_ERROR.format(
-                    output=output
+                yield PartialResponse(
+                    text=textwrap.dedent(f"\n\n```output\n{output}```\n\n")
+                )
+                yield PartialResponse(
+                    text=textwrap.dedent(f"\n\n```error\n{error}```\n\n")
+                )
+                current_user_simulated_reply = (
+                    SIMULATED_USER_REPLY_OUTPUT_AND_ERROR.format(output=output)
                 )
             elif output:
-                yield PartialResponse(text=textwrap.dedent(f"\n\n```output\n{output}```\n\n"))
+                yield PartialResponse(
+                    text=textwrap.dedent(f"\n\n```output\n{output}```\n\n")
+                )
                 current_user_simulated_reply = SIMULATED_USER_REPLY_OUTPUT_ONLY.format(
                     output=output
                 )
             elif error:
-                yield PartialResponse(text=textwrap.dedent(f"\n\n```output\n{error}```\n\n"))
+                yield PartialResponse(
+                    text=textwrap.dedent(f"\n\n```output\n{error}```\n\n")
+                )
                 current_user_simulated_reply = SIMULATED_USER_REPLY_ERROR_ONLY.format(
                     error=error
                 )
@@ -226,32 +239,34 @@ class PythonAgentBot(PoeBot):
                 if image_data:
                     f = modal.Function.lookup("image-upload-shared", "upload_file")
                     image_url = f.remote(image_data, "image.png")
-                    yield PartialResponse(text=textwrap.dedent(f"\n\n![plot]({image_url})"))
+                    yield PartialResponse(
+                        text=textwrap.dedent(f"\n\n![plot]({image_url})")
+                    )
                     vol.remove_file("image.png")
 
             if image_url:
-                current_user_simulated_reply += "\n\nThe code executed returned an image."
+                current_user_simulated_reply += (
+                    "\n\nThe code executed returned an image."
+                )
             else:
                 if "matplotlib" in code:
-                    current_user_simulated_reply += "\n\nThe code executed did not return any image."
+                    current_user_simulated_reply += (
+                        "\n\nThe code executed did not return any image."
+                    )
 
             message = ProtocolMessage(role="bot", content=current_user_simulated_reply)
             request.query.append(message)
 
     async def get_settings(self, setting: SettingsRequest) -> SettingsResponse:
         return SettingsResponse(
-            server_bot_dependencies={self.prompt_bot: 10},
-            allow_attachments=True,
+            server_bot_dependencies={self.prompt_bot: 10}, allow_attachments=True
         )
 
 
-image_bot = Image.debian_slim().pip_install(
-    "fastapi-poe==0.0.23",
-    "requests==2.28.2",
-).env(
-    {
-        "POE_API_KEY": os.environ["POE_API_KEY"],
-    }
+image_bot = (
+    Image.debian_slim()
+    .pip_install("fastapi-poe==0.0.23", "requests==2.28.2")
+    .env({"POE_API_KEY": os.environ["POE_API_KEY"]})
 )
 
 image_exec = Image.debian_slim().pip_install(
@@ -295,11 +310,12 @@ image_exec = Image.debian_slim().pip_install(
     "tiktoken",
     "basemap-data-hires",
     "yfinance",
-    "dill",  # required for 
+    "dill",  # required for
 )
 
 stub = Stub()
 bot = PythonAgentBot()
+
 
 @stub.function(image=image_bot)
 @asgi_app()

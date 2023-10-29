@@ -9,27 +9,31 @@ https://pjreddie.com/static/Redmon%20Resume.pdf
 """
 from __future__ import annotations
 
-from collections import defaultdict
-from io import BytesIO
 from typing import AsyncIterable
 
-from fastapi_poe import PoeBot, run
+import fastapi_poe.client
+from fastapi_poe import PoeBot
 from fastapi_poe.types import QueryRequest, SettingsResponse
 from sse_starlette.sse import ServerSentEvent
 
-import fastapi_poe.client
 fastapi_poe.client.MAX_EVENT_COUNT = 10000
 
 import modal
+
 # https://modalbetatesters.slack.com/archives/C031Z7H15DG/p1675177408741889?thread_ts=1675174647.477169&cid=C031Z7H15DG
 modal.app._is_container_app = False
 
 
 class EchoBot(PoeBot):
     async def get_response(self, query: QueryRequest) -> AsyncIterable[ServerSentEvent]:
-        if query.query[-1].attachments and query.query[-1].attachments[0].content_type == "application/pdf":
+        if (
+            query.query[-1].attachments
+            and query.query[-1].attachments[0].content_type == "application/pdf"
+        ):
             content_url = query.query[-1].attachments[0].url
-            yield self.text_event("PDF attachment received. Please wait while we convert ...")
+            yield self.text_event(
+                "PDF attachment received. Please wait while we convert ..."
+            )
         else:
             yield self.replace_response_event("PDF attachment not found.")
 
@@ -42,12 +46,11 @@ class EchoBot(PoeBot):
 
         yield self.replace_response_event(captured_output)
 
-
     async def get_settings(self, setting: SettingsRequest) -> SettingsResponse:
         return SettingsResponse(
             server_bot_dependencies={},
             allow_attachments=True,
-            introduction_message="Please upload your document (pdf)."
+            introduction_message="Please upload your document (pdf).",
         )
 
 
@@ -61,9 +64,6 @@ import os
 
 from fastapi_poe import make_app
 from modal import Image, Stub, asgi_app
-
-from catbot import CatBot
-from huggingface_bot import HuggingFaceBot
 
 # Echo bot is a very simple bot that just echoes back the user's last message.
 bot = EchoBot()

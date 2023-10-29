@@ -16,9 +16,8 @@ from typing import AsyncIterable
 import pdftotext
 import pytesseract
 import requests
-
 from docx import Document
-from fastapi_poe import PoeBot, run
+from fastapi_poe import PoeBot
 from fastapi_poe.types import QueryRequest, SettingsResponse
 from PIL import Image as PILImage
 from sse_starlette.sse import ServerSentEvent
@@ -207,12 +206,17 @@ class EchoBot(PoeBot):
         user_statement: str = query.query[-1].content
         print(query.conversation_id, user_statement)
 
-        if query.query[-1].attachments and query.query[-1].attachments[0].content_type == "application/pdf":
+        if (
+            query.query[-1].attachments
+            and query.query[-1].attachments[0].content_type == "application/pdf"
+        ):
             content_url = query.query[-1].attachments[0].url
             print("parsing pdf", content_url)
             success, resume_string = await parse_pdf_document_from_url(content_url)
 
-        elif query.query[-1].attachments and query.query[-1].attachments[0].content_type.endswith("document"):
+        elif query.query[-1].attachments and query.query[-1].attachments[
+            0
+        ].content_type.endswith("document"):
             content_url = query.query[-1].attachments[0].url
             print("parsing docx", content_url)
             success, resume_string = await parse_pdf_document_from_docx(content_url)
@@ -238,7 +242,9 @@ class EchoBot(PoeBot):
                 success, resume_string = await parse_pdf_document_from_docx(content_url)
             else:  # assume image
                 print("parsing image", content_url)
-                success, resume_string = await parse_image_document_from_url(content_url)
+                success, resume_string = await parse_image_document_from_url(
+                    content_url
+                )
 
             print(resume_string[:100])
 
@@ -269,7 +275,7 @@ class EchoBot(PoeBot):
         return SettingsResponse(
             server_bot_dependencies={},
             allow_attachments=True,
-            introduction_message="Please upload your document (pdf, docx)."
+            introduction_message="Please upload your document (pdf, docx).",
         )
 
 
@@ -283,9 +289,6 @@ import os
 
 from fastapi_poe import make_app
 from modal import Image, Stub, asgi_app
-
-from catbot import CatBot
-from huggingface_bot import HuggingFaceBot
 
 # Echo bot is a very simple bot that just echoes back the user's last message.
 bot = EchoBot()

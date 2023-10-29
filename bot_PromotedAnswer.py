@@ -12,14 +12,14 @@ from __future__ import annotations
 from typing import AsyncIterable
 from urllib.parse import urlparse, urlunparse
 
+import fastapi_poe.client
 import requests
 from bs4 import BeautifulSoup
-from fastapi_poe import PoeBot, run
+from fastapi_poe import PoeBot
 from fastapi_poe.client import MetaMessage, stream_request
 from fastapi_poe.types import QueryRequest, SettingsRequest, SettingsResponse
 from sse_starlette.sse import ServerSentEvent
 
-import fastapi_poe.client
 fastapi_poe.client.MAX_EVENT_COUNT = 10000
 
 PROMPT_TEMPLATE = """
@@ -161,8 +161,6 @@ class EchoBot(PoeBot):
 from fastapi_poe import make_app
 from modal import Image, Stub, asgi_app
 
-from catbot import CatBot
-
 # Echo bot is a very simple bot that just echoes back the user's last message.
 bot = EchoBot()
 
@@ -187,7 +185,9 @@ bot = EchoBot()
 # app = make_app(bot, api_key=POE_API_KEY)
 
 # specific to hosting with modal.com
-image = Image.debian_slim().pip_install_from_requirements("requirements_PromotedAnswer.txt")
+image = Image.debian_slim().pip_install_from_requirements(
+    "requirements_PromotedAnswer.txt"
+)
 stub = Stub("poe-bot-quickstart")
 
 

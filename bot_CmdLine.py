@@ -11,13 +11,13 @@ cat a.txt
 
 from __future__ import annotations
 
+import os
 from typing import AsyncIterable
 
+import modal
 from fastapi_poe import PoeBot, make_app
 from fastapi_poe.types import PartialResponse, QueryRequest
 from modal import Image, Stub, asgi_app
-import modal
-import os
 
 
 class EchoBot(PoeBot):
@@ -30,7 +30,8 @@ class EchoBot(PoeBot):
             "bash",
             "-c",
             f"cd /cache && {last_message}",
-            network_file_systems={f"/cache": stub.nfs})
+            network_file_systems={f"/cache": stub.nfs},
+        )
         sb.wait()
 
         output = sb.stdout.read()
@@ -52,14 +53,15 @@ class EchoBot(PoeBot):
 
 
 # specific to hosting with modal.com
-image = Image.debian_slim().pip_install_from_requirements("requirements_CommandShell.txt").env(
-    {
-        "POE_API_KEY": os.environ["POE_API_KEY"],
-    }
+image = (
+    Image.debian_slim()
+    .pip_install("fastapi-poe==0.0.23")
+    .env({"POE_API_KEY": os.environ["POE_API_KEY"]})
 )
 stub = Stub("poe-bot-quickstart")
 
 bot = EchoBot()
+
 
 @stub.function(image=image)
 @asgi_app()
