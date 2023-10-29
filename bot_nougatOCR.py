@@ -13,7 +13,7 @@ from typing import AsyncIterable
 
 import fastapi_poe.client
 from fastapi_poe import PoeBot
-from fastapi_poe.types import QueryRequest, SettingsResponse
+from fastapi_poe.types import QueryRequest, SettingsRequest, SettingsResponse
 from sse_starlette.sse import ServerSentEvent
 
 fastapi_poe.client.MAX_EVENT_COUNT = 10000
@@ -91,7 +91,7 @@ image = (
     Image.debian_slim()
     .apt_install("libpoppler-cpp-dev")
     .apt_install("tesseract-ocr-eng")
-    .pip_install_from_requirements("requirements_TesseractOCR.txt")
+    .pip_install("fastapi-poe==0.0.23")
 ).env(
     {
         "OPENAI_API_KEY": os.environ["OPENAI_API_KEY"],

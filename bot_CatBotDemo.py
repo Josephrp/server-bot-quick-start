@@ -15,7 +15,7 @@ import asyncio
 import json
 from typing import AsyncIterable
 
-from fastapi_poe import PoeBot
+from fastapi_poe import PoeBot, make_app
 from fastapi_poe.types import (
     ContentType,
     ErrorResponse,
@@ -26,6 +26,7 @@ from fastapi_poe.types import (
     SettingsRequest,
     SettingsResponse,
 )
+from modal import Image, Stub, asgi_app
 from sse_starlette.sse import ServerSentEvent
 
 SETTINGS = SettingsResponse(allow_user_context_clear=True, allow_attachments=True)
@@ -111,9 +112,6 @@ class CatBot(PoeBot):
         """Return the settings for this bot."""
         return SETTINGS
 
-
-from fastapi_poe import make_app
-from modal import Image, Stub, asgi_app
 
 # specific to hosting with modal.com
 image = (

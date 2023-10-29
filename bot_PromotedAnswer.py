@@ -185,8 +185,8 @@ bot = EchoBot()
 # app = make_app(bot, api_key=POE_API_KEY)
 
 # specific to hosting with modal.com
-image = Image.debian_slim().pip_install_from_requirements(
-    "requirements_PromotedAnswer.txt"
+image = Image.debian_slim().pip_install(
+    "fastapi-poe==0.0.23", "requests==2.31.0", "beautifulsoup4==4.10.0"
 )
 stub = Stub("poe-bot-quickstart")
 

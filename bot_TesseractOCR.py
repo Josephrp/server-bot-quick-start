@@ -316,7 +316,16 @@ image = (
     Image.debian_slim()
     .apt_install("libpoppler-cpp-dev")
     .apt_install("tesseract-ocr-eng")
-    .pip_install_from_requirements("requirements_TesseractOCR.txt")
+    .pip_install(
+        "fastapi-poe==0.0.23",
+        "huggingface-hub==0.16.4",
+        "requests==2.31.0",
+        "pdftotext==2.2.2",
+        "Pillow==9.5.0",
+        "openai==0.27.8",
+        "pytesseract==0.3.10",
+        "python-docx",
+    )
 ).env(
     {
         "OPENAI_API_KEY": os.environ["OPENAI_API_KEY"],

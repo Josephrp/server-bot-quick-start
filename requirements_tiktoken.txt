@@ -1,2 +1,0 @@
-fastapi-poe==0.0.23
-tiktoken

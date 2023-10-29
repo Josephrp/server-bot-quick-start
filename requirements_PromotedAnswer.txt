@@ -1,3 +1,0 @@
-fastapi-poe==0.0.23
-requests==2.31.0
-beautifulsoup4==4.10.0

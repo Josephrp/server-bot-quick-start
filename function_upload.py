@@ -11,7 +11,7 @@ from modal import Image, Stub
 
 image = (
     Image.debian_slim()
-    .pip_install_from_requirements("requirements_function_upload.txt")
+    .pip_install("cloudinary")
     .env(
         {
             "CLOUDINARY_CLOUD_NAME": os.environ["CLOUDINARY_CLOUD_NAME"],

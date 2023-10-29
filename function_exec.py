@@ -12,8 +12,48 @@ from io import StringIO
 
 from modal import Image, Stub
 
-image = Image.debian_slim().pip_install_from_requirements(
-    "requirements_function_exec.txt"
+image = Image.debian_slim().pip_install(
+    "fastapi-poe==0.0.23",
+    "huggingface-hub==0.16.4",
+    "ipython",
+    "scipy",
+    "matplotlib",
+    "scikit-learn",
+    "pandas==1.3.2",
+    "ortools",
+    "torch",
+    "torchvision",
+    "tensorflow",
+    "spacy",
+    "transformers",
+    "opencv-python-headless",
+    "nltk",
+    "openai",
+    "requests",
+    "beautifulsoup4",
+    "newspaper3k",
+    "feedparser",
+    "sympy",
+    "tensorflow",
+    "cartopy",
+    "wordcloud",
+    "gensim",
+    "keras",
+    "librosa",
+    "XlsxWriter",
+    "docx2txt",
+    "markdownify",
+    "pdfminer.six",
+    "Pillow",
+    "opencv-python",
+    "sortedcontainers",
+    "intervaltree",
+    "geopandas",
+    "basemap",
+    "tiktoken",
+    "basemap-data-hires",
+    "yfinance",
+    "dill",
 )
 stub = Stub("run-python-code-shared")
 

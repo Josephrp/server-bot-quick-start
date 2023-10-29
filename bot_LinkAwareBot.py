@@ -185,7 +185,12 @@ bot = EchoBot()
 image = (
     Image.debian_slim()
     .apt_install("libpoppler-cpp-dev")
-    .pip_install_from_requirements("requirements_LinkAwareBot.txt")
+    .pip_install(
+        "fastapi-poe==0.0.23",
+        "pdftotext==2.2.2",
+        "requests==2.28.2",
+        "beautifulsoup4==4.12.2",
+    )
 )
 stub = Stub("poe-bot-quickstart")
 

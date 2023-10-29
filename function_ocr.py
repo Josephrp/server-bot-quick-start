@@ -10,11 +10,7 @@ import os
 import requests
 from modal import Image, Stub
 
-image = (
-    Image.debian_slim()
-    .apt_install("wget")
-    .pip_install_from_requirements("requirements_function_ocr.txt")
-)
+image = Image.debian_slim().apt_install("wget").pip_install("nougat-ocr==0.1.14")
 
 stub = Stub("ocr-shared")
 

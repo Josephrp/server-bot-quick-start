@@ -177,8 +177,8 @@ bot = EchoBot()
 # bot = HuggingFaceBot("microsoft/DialoGPT-medium")
 
 # The following is setup code that is required to host with modal.com
-image = Image.debian_slim().pip_install_from_requirements(
-    "requirements_MeguminWizardEx.txt"
+image = Image.debian_slim().pip_install(
+    "fastapi-poe==0.0.23", "huggingface-hub==0.16.4"
 )
 # Rename "poe-bot-quickstart" to your preferred app name.
 stub = Stub("poe-bot-quickstart")

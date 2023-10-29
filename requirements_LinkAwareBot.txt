@@ -1,4 +1,0 @@
-fastapi-poe==0.0.23
-pdftotext==2.2.2
-requests==2.28.2
-beautifulsoup4==4.12.2
