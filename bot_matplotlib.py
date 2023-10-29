@@ -1,7 +1,6 @@
 """
 
-modal deploy --name matplotlib bot_matplotlib.py
-curl -X POST https://api.poe.com/bot/fetch_settings/matplotlib/$POE_API_KEY
+BOT_NAME="matplotlib"; modal deploy --name $BOT_NAME bot_${BOT_NAME}.py; curl -X POST https://api.poe.com/bot/fetch_settings/$BOT_NAME/$POE_ACCESS_KEY
 
 Test message:
 Draw USA map
@@ -157,14 +156,14 @@ bot = EchoBot()
 # Optionally add your Poe API key here. You can go to https://poe.com/create_bot?api=1 to generate
 # one. We strongly recommend adding this key for a production bot to prevent abuse,
 # but the starter example disables the key check for convenience.
-# POE_API_KEY = ""
-# app = make_app(bot, api_key=POE_API_KEY)
+# POE_ACCESS_KEY = ""
+# app = make_app(bot, api_key=POE_ACCESS_KEY)
 
 # specific to hosting with modal.com
 image = (
     Image.debian_slim()
     .pip_install("fastapi-poe==0.0.23")
-    .env({"POE_API_KEY": os.environ["POE_API_KEY"]})
+    .env({"POE_ACCESS_KEY": os.environ["POE_ACCESS_KEY"]})
 )
 stub = Stub("poe-bot-quickstart")
 
@@ -172,5 +171,5 @@ stub = Stub("poe-bot-quickstart")
 @stub.function(image=image)
 @asgi_app()
 def fastapi_app():
-    app = make_app(bot, api_key=os.environ["POE_API_KEY"])
+    app = make_app(bot, api_key=os.environ["POE_ACCESS_KEY"])
     return app

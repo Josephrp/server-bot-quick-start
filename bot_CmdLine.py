@@ -1,7 +1,6 @@
 """
 
-modal deploy --name CmdLine bot_CmdLine.py
-curl -X POST https://api.poe.com/bot/fetch_settings/CmdLine/$POE_API_KEY
+BOT_NAME="CmdLine"; modal deploy --name $BOT_NAME bot_${BOT_NAME}.py; curl -X POST https://api.poe.com/bot/fetch_settings/$BOT_NAME/$POE_ACCESS_KEY
 
 Test message:
 echo z > a.txt
@@ -56,7 +55,7 @@ class EchoBot(PoeBot):
 image = (
     Image.debian_slim()
     .pip_install("fastapi-poe==0.0.23")
-    .env({"POE_API_KEY": os.environ["POE_API_KEY"]})
+    .env({"POE_ACCESS_KEY": os.environ["POE_ACCESS_KEY"]})
 )
 stub = Stub("poe-bot-quickstart")
 
@@ -66,5 +65,5 @@ bot = EchoBot()
 @stub.function(image=image)
 @asgi_app()
 def fastapi_app():
-    app = make_app(bot, api_key=os.environ["POE_API_KEY"])
+    app = make_app(bot, api_key=os.environ["POE_ACCESS_KEY"])
     return app

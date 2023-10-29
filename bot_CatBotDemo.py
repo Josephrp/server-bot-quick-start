@@ -1,7 +1,6 @@
 """
 
-modal deploy --name CatBotDemo bot_CatBotDemo.py
-curl -X POST https://api.poe.com/bot/fetch_settings/CatBotDemo/$POE_API_KEY
+BOT_NAME="CatBotDemo"; modal deploy --name $BOT_NAME bot_${BOT_NAME}.py; curl -X POST https://api.poe.com/bot/fetch_settings/$BOT_NAME/$POE_ACCESS_KEY
 
 Demo bot: catbot.
 

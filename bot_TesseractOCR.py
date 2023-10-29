@@ -1,7 +1,6 @@
 """
 
-modal deploy --name TesseractOCR bot_TesseractOCR.py
-curl -X POST https://api.poe.com/bot/fetch_settings/TesseractOCR/$POE_API_KEY
+BOT_NAME="TesseractOCR"; modal deploy --name $BOT_NAME bot_${BOT_NAME}.py; curl -X POST https://api.poe.com/bot/fetch_settings/$BOT_NAME/$POE_ACCESS_KEY
 
 Test message:
 https://pjreddie.com/static/Redmon%20Resume.pdf
@@ -329,7 +328,7 @@ image = (
 ).env(
     {
         "OPENAI_API_KEY": os.environ["OPENAI_API_KEY"],
-        "POE_API_KEY": os.environ["POE_API_KEY"],
+        "POE_ACCESS_KEY": os.environ["POE_ACCESS_KEY"],
     }
 )
 stub = Stub("poe-bot-quickstart")
@@ -346,5 +345,5 @@ def fastapi_app():
     # by following the instructions at: https://modal.com/docs/guide/secrets
     # POE_ACCESS_KEY = ""
     # app = make_app(bot, access_key=POE_ACCESS_KEY)
-    app = make_app(bot, api_key=os.environ["POE_API_KEY"])
+    app = make_app(bot, api_key=os.environ["POE_ACCESS_KEY"])
     return app

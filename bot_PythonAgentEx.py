@@ -1,6 +1,6 @@
 """
 
-BOT_NAME="PythonAgent"; modal deploy --name $BOT_NAME bot_${BOT_NAME}.py; curl -X POST https://api.poe.com/bot/fetch_settings/$BOT_NAME/$POE_API_KEY
+BOT_NAME="PythonAgentEx"; modal deploy --name $BOT_NAME bot_${BOT_NAME}.py; curl -X POST https://api.poe.com/bot/fetch_settings/$BOT_NAME/$POE_ACCESS_KEY
 
 Test message:
 download and save wine dataset
@@ -25,5 +25,5 @@ bot = PythonAgentBot()
 @stub.function(image=image_bot)
 @asgi_app()
 def fastapi_app():
-    app = make_app(bot, api_key=os.environ["POE_API_KEY"])
+    app = make_app(bot, api_key=os.environ["POE_ACCESS_KEY"])
     return app
