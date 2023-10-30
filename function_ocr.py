@@ -12,7 +12,7 @@ from modal import Image, Stub
 
 image = Image.debian_slim().apt_install("wget").pip_install("nougat-ocr==0.1.14")
 
-stub = Stub("ocr-shared")
+stub = Stub("poe-bot-quickstart")
 
 
 @stub.function(image=image, timeout=180)

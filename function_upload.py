@@ -21,7 +21,7 @@ image = (
     )
 )
 
-stub = Stub("image-upload-shared")
+stub = Stub("poe-bot-quickstart")
 
 
 @stub.function(image=image, timeout=30)

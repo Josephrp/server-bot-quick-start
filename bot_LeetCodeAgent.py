@@ -241,6 +241,7 @@ image_exec = Image.debian_slim().pip_install(
     "yfinance",
     "dill",
 )
+
 stub = Stub("poe-bot-quickstart")
 
 bot = EchoBot()

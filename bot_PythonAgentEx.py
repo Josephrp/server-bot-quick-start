@@ -18,8 +18,7 @@ from bot_PythonAgent import PythonAgentBot, image_bot
 bot = PythonAgentBot()
 bot.prompt_bot = "PythonAgentExTool"
 
-stub = Stub()
-bot = PythonAgentBot()
+stub = Stub("poe-bot-quickstart")
 
 
 @stub.function(image=image_bot)

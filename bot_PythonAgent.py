@@ -314,7 +314,8 @@ image_exec = Image.debian_slim().pip_install(
     "dill",  # required for
 )
 
-stub = Stub()
+stub = Stub("poe-bot-quickstart")
+
 bot = PythonAgentBot()
 
 

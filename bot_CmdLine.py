@@ -57,7 +57,8 @@ image = (
     .pip_install("fastapi-poe==0.0.23")
     .env({"POE_ACCESS_KEY": os.environ["POE_ACCESS_KEY"]})
 )
-stub = Stub("poe-bot-quickstart")
+
+stub = Stub()
 
 bot = EchoBot()
 

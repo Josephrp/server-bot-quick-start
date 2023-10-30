@@ -112,12 +112,8 @@ class CatBot(PoeBot):
         return SETTINGS
 
 
-# specific to hosting with modal.com
-image = (
-    Image.debian_slim()
-    .pip_install_from_requirements("requirements_CommandShell.txt")
-    .env()
-)
+image = Image.debian_slim().pip_install("fastapi-poe==0.0.23").env()
+
 stub = Stub("poe-bot-quickstart")
 
 bot = CatBot()

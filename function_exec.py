@@ -55,7 +55,8 @@ image = Image.debian_slim().pip_install(
     "yfinance",
     "dill",
 )
-stub = Stub("run-python-code-shared")
+
+stub = Stub("poe-bot-quickstart")
 
 
 @stub.function(image=image, timeout=30)

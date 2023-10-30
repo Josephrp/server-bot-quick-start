@@ -24,8 +24,6 @@ fastapi_poe.client.MAX_EVENT_COUNT = 10000
 # https://modalbetatesters.slack.com/archives/C031Z7H15DG/p1675177408741889?thread_ts=1675174647.477169&cid=C031Z7H15DG
 modal.app._is_container_app = False
 
-stub = Stub("run-python-code")
-
 
 def redact_image_links(text):
     pattern = r"!\[.*\]\(http.*\)"
@@ -131,40 +129,14 @@ class EchoBot(PoeBot):
         )
 
 
-# Welcome to the Poe API tutorial. The starter code provided provides you with a quick way to get
-# a bot running. By default, the starter code uses the EchoBot, which is a simple bot that echos
-# a message back at its user and is a good starting point for your bot, but you can
-# comment/uncomment any of the following code to try out other example bots.
-
-# Echo bot is a very simple bot that just echoes back the user's last message.
 bot = EchoBot()
 
-# A sample bot that showcases the capabilities the protocol provides. Please see the
-# following link for the full set of available message commands:
-# https://github.com/poe-platform/api-bot-tutorial/blob/main/catbot/catbot.md
-# bot = CatBot()
-
-# A bot that wraps Poe's ChatGPT bot, but makes all messages ALL CAPS.
-# Good simple example of calling on another bot using Poe's API.
-# bot = ChatGPTAllCapsBot()
-
-# A bot that calls two different bots (by default Sage and Claude-Instant) and
-# shows the results. Can customize what bots to call by including in message a string
-# of the form (botname1 vs botname2)
-# bot = BattleBot()
-
-# Optionally add your Poe API key here. You can go to https://poe.com/create_bot?api=1 to generate
-# one. We strongly recommend adding this key for a production bot to prevent abuse,
-# but the starter example disables the key check for convenience.
-# POE_ACCESS_KEY = ""
-# app = make_app(bot, api_key=POE_ACCESS_KEY)
-
-# specific to hosting with modal.com
 image = (
     Image.debian_slim()
     .pip_install("fastapi-poe==0.0.23")
     .env({"POE_ACCESS_KEY": os.environ["POE_ACCESS_KEY"]})
 )
+
 stub = Stub("poe-bot-quickstart")
 
 
