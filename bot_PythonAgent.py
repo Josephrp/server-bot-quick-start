@@ -35,6 +35,40 @@ def extract_code(reply):
     return "\n\n".join(matches)
 
 
+PYTHON_AGENT_SYSTEM_PROMPT = """
+You write the Python code that solves the problem for the user.
+
+When you return Python code
+- Annotate all Python code with \n```python
+- The Python code should print something and should not use input().
+
+Libraries available
+numpy
+scipy
+matplotlib
+scikit-learn
+pandas
+ortools
+torch
+torchvision
+tensorflow
+transformers
+opencv-python-headless
+nltk
+openai
+requests
+beautifulsoup4
+newspaper3k
+feedparser
+sympy
+yfinance
+basemap
+"""
+
+PYTHON_AGENT_SYSTEM_MESSAGE = ProtocolMessage(
+    role="system", content=PYTHON_AGENT_SYSTEM_PROMPT
+)
+
 CODE_WITH_WRAPPERS = """\
 import numpy as np
 import matplotlib.pyplot as plt
@@ -105,15 +139,16 @@ The code was executed without issues, without any standard output.
 
 def wrap_session(code, conversation_id):
     # the wrapper code
-    # - save session with dill (if execution is successful)
     # - load session with dill (for the same conversation)
+    # - execute the code
     # - save to image.png on plt.plot() and plt.show()
+    # - save session with dill (if execution is successful)
 
     return CODE_WITH_WRAPPERS.format(code=code, conversation_id=conversation_id)
 
 
 class PythonAgentBot(PoeBot):
-    prompt_bot = "PythonAgentTool"
+    prompt_bot = "GPT-3.5-Turbo-Instruct"
     # Note: See https://poe.com/PythonAgentTool for the system prompt
     # Would be great if we could define system prompt in code
     # An alternative is to wrap in the user message and call base ChatGPT
@@ -123,6 +158,8 @@ class PythonAgentBot(PoeBot):
     ) -> AsyncIterable[PartialResponse]:
         last_message = request.query[-1].content
         print("user_message", last_message)
+
+        request.query = [PYTHON_AGENT_SYSTEM_MESSAGE] + request.query
         request.logit_bias = {"21362": -10}  # censor "![", but does this work?
 
         # procedure to create volume if it does not exist
@@ -153,7 +190,7 @@ class PythonAgentBot(PoeBot):
 
             current_bot_reply = ""
             async for msg in stream_request(
-                request, "PythonAgentTool", request.api_key
+                request, self.prompt_bot, request.api_key
             ):
                 if isinstance(msg, MetaMessage):
                     continue
@@ -256,6 +293,7 @@ class PythonAgentBot(PoeBot):
                     vol.remove_file("image.png")
 
             if image_url:
+                # wishlist - call an API that describes what is going on in the image
                 current_user_simulated_reply += SIMULATED_USER_SUFFIX_IMAGE_FOUND
             else:
                 if "matplotlib" in code:
@@ -266,7 +304,9 @@ class PythonAgentBot(PoeBot):
 
     async def get_settings(self, setting: SettingsRequest) -> SettingsResponse:
         return SettingsResponse(
-            server_bot_dependencies={self.prompt_bot: 10}, allow_attachments=True
+            server_bot_dependencies={self.prompt_bot: 10},
+            allow_attachments=True,
+            introduction_message="",
         )
 
 
@@ -317,7 +357,7 @@ image_exec = Image.debian_slim().pip_install(
     "tiktoken",
     "basemap-data-hires",
     "yfinance",
-    "dill",  # required for
+    "dill",
 )
 
 stub = Stub("poe-bot-quickstart")
