@@ -58,7 +58,7 @@ image = (
     .env({"POE_ACCESS_KEY": os.environ["POE_ACCESS_KEY"]})
 )
 
-stub = Stub()
+stub = Stub("poe-bot-quickstart")
 
 bot = EchoBot()
 

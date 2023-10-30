@@ -36,13 +36,14 @@ def extract_code(reply):
 
 
 PYTHON_AGENT_SYSTEM_PROMPT = """
-You write the Python code that solves the problem for the user.
+You write the Python code for me
 
 When you return Python code
-- Annotate all Python code with \n```python
-- The Python code should print something and should not use input().
+- Annotate all Python code within \n```python and ```\n
+- The Python code should print something or plot something
+- The Python code should not use input().
 
-Libraries available
+Python packages already installed
 numpy
 scipy
 matplotlib
@@ -62,7 +63,7 @@ newspaper3k
 feedparser
 sympy
 yfinance
-basemap
+basemap (in mpl_toolkits.basemap)
 """
 
 PYTHON_AGENT_SYSTEM_MESSAGE = ProtocolMessage(
@@ -124,16 +125,24 @@ The code was executed and this is the error.
 ```
 """
 
+SIMULATED_USER_REPLY_NO_OUTPUT_OR_ERROR = """\
+The code was executed without issues, without any standard output.
+"""
+
 SIMULATED_USER_SUFFIX_IMAGE_FOUND = """
+
 The code executed returned an image.
 """
 
 SIMULATED_USER_SUFFIX_IMAGE_NOT_FOUND = """
+
 The code executed did not return any image.
 """
 
-SIMULATED_USER_REPLY_NO_OUTPUT_OR_ERROR = """\
-The code was executed without issues, without any standard output.
+SIMULATED_USER_SUFFIX_PROMPT = """
+
+If my request is fulfilled, concisely summarize what have you done.
+If my request is not fulfiled, fix the code so that it fulfils the my request.
 """
 
 
@@ -298,6 +307,8 @@ class PythonAgentBot(PoeBot):
             else:
                 if "matplotlib" in code:
                     current_user_simulated_reply += SIMULATED_USER_SUFFIX_IMAGE_NOT_FOUND
+
+            current_user_simulated_reply += SIMULATED_USER_SUFFIX_PROMPT
 
             message = ProtocolMessage(role="bot", content=current_user_simulated_reply)
             request.query.append(message)
