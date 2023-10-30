@@ -66,21 +66,21 @@ with open('{conversation_id}.dill', 'wb') as f:
 """
 
 SIMULATED_USER_REPLY_OUTPUT_ONLY = """\
-I have executed your code and this is the output.
+The code was executed and this is the output.
 ```output
 {output}
 ```
 """
 
 SIMULATED_USER_REPLY_ERROR_ONLY = """\
-I have executed your code and this is the error.
+The code was executed and this is the error.
 ```error
 {error}
 ```
 """
 
 SIMULATED_USER_REPLY_OUTPUT_AND_ERROR = """\
-I have executed your code and this is the error.
+The code was executed and this is the error.
 ```output
 {output}
 ```
@@ -90,8 +90,16 @@ I have executed your code and this is the error.
 ```
 """
 
+SIMULATED_USER_SUFFIX_IMAGE_FOUND = """
+The code executed returned an image.
+"""
+
+SIMULATED_USER_SUFFIX_IMAGE_NOT_FOUND = """
+The code executed did not return any image.
+"""
+
 SIMULATED_USER_REPLY_NO_OUTPUT_OR_ERROR = """\
-Your code has run without issues, without any standard output.
+The code was executed without issues, without any standard output.
 """
 
 
@@ -169,7 +177,8 @@ class PythonAgentBot(PoeBot):
                 return
 
             # prepare code for execution
-            print("len(code)", code)
+            print("code")
+            print(code)
             code = wrap_session(code, conversation_id=request.conversation_id)
 
             # upload python script
@@ -194,7 +203,8 @@ class PythonAgentBot(PoeBot):
             print("len(output)", len(output))
             print("len(error)", len(error))
             if error:  # for monitoring
-                print("error", error)
+                print("error")
+                print(error)
 
             current_user_simulated_reply = ""
             if output and error:
@@ -216,7 +226,7 @@ class PythonAgentBot(PoeBot):
                 )
             elif error:
                 yield PartialResponse(
-                    text=textwrap.dedent(f"\n\n```output\n{error}```\n\n")
+                    text=textwrap.dedent(f"\n\n```error\n{error}```\n\n")
                 )
                 current_user_simulated_reply = SIMULATED_USER_REPLY_ERROR_ONLY.format(
                     error=error
@@ -246,14 +256,10 @@ class PythonAgentBot(PoeBot):
                     vol.remove_file("image.png")
 
             if image_url:
-                current_user_simulated_reply += (
-                    "\n\nThe code executed returned an image."
-                )
+                current_user_simulated_reply += SIMULATED_USER_SUFFIX_IMAGE_FOUND
             else:
                 if "matplotlib" in code:
-                    current_user_simulated_reply += (
-                        "\n\nThe code executed did not return any image."
-                    )
+                    current_user_simulated_reply += SIMULATED_USER_SUFFIX_IMAGE_NOT_FOUND
 
             message = ProtocolMessage(role="bot", content=current_user_simulated_reply)
             request.query.append(message)
