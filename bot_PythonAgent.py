@@ -39,8 +39,8 @@ PYTHON_AGENT_SYSTEM_PROMPT = """
 You write the Python code for me
 
 When you return Python code
-- Annotate all Python code within \n```python and ```\n
-- The Python code should print something or plot something
+- Encapsulate all Python code within triple backticks (i.e ```python) with newlines.
+- The Python code should either print something or plot something
 - The Python code should not use input().
 
 Python packages already installed
@@ -141,8 +141,8 @@ The code executed did not return any image.
 
 SIMULATED_USER_SUFFIX_PROMPT = """
 
-If my request is fulfilled, concisely summarize what have you done.
-If my request is not fulfiled, fix the code so that it fulfils the my request.
+Carefully read the output and error to check if my request is fulfilled.
+If there is an issue, you will write Python code to fix it without involving me at all.
 """
 
 
@@ -158,18 +158,17 @@ def wrap_session(code, conversation_id):
 
 class PythonAgentBot(PoeBot):
     prompt_bot = "GPT-3.5-Turbo-Instruct"
-    # Note: See https://poe.com/PythonAgentTool for the system prompt
-    # Would be great if we could define system prompt in code
-    # An alternative is to wrap in the user message and call base ChatGPT
 
     async def get_response(
         self, request: QueryRequest
     ) -> AsyncIterable[PartialResponse]:
         last_message = request.query[-1].content
-        print("user_message", last_message)
+        print("user_message")
+        print(last_message)
 
         request.query = [PYTHON_AGENT_SYSTEM_MESSAGE] + request.query
         request.logit_bias = {"21362": -10}  # censor "![", but does this work?
+        request.temperature = 0.1  # does this work?
 
         # procedure to create volume if it does not exist
         # tried other ways to write a code but has hydration issues
@@ -186,6 +185,7 @@ class PythonAgentBot(PoeBot):
         for query in request.query:
             for attachment in query.attachments:
                 query.content += f"\n\nThe user has provided {attachment.name} in the current directory."
+            query.attachments = []
 
         # upload files in latest user message
         for attachment in request.query[-1].attachments:
@@ -261,7 +261,7 @@ class PythonAgentBot(PoeBot):
                     text=textwrap.dedent(f"\n\n```error\n{error}```\n\n")
                 )
                 current_user_simulated_reply = (
-                    SIMULATED_USER_REPLY_OUTPUT_AND_ERROR.format(output=output)
+                    SIMULATED_USER_REPLY_OUTPUT_AND_ERROR.format(output=output, error=error)
                 )
             elif output:
                 yield PartialResponse(
@@ -369,6 +369,7 @@ image_exec = Image.debian_slim().pip_install(
     "basemap-data-hires",
     "yfinance",
     "dill",
+    "seaborn",
 )
 
 stub = Stub("poe-bot-quickstart")
