@@ -43,7 +43,7 @@ When you return Python code
 - The Python code should either print something or plot something
 - The Python code should not use input()
 
-I have already install these Python packages
+I have already installed these Python packages
 
 numpy
 scipy
@@ -66,10 +66,6 @@ feedparser
 sympy
 yfinance
 """
-
-PYTHON_AGENT_SYSTEM_MESSAGE = ProtocolMessage(
-    role="system", content=PYTHON_AGENT_SYSTEM_PROMPT
-)
 
 CODE_WITH_WRAPPERS = """\
 import numpy as np
@@ -159,6 +155,7 @@ def wrap_session(code, conversation_id):
 
 class PythonAgentBot(PoeBot):
     prompt_bot = "ChatGPT"
+    code_iteration_limit = 7
 
     async def get_response(
         self, request: QueryRequest
@@ -166,6 +163,10 @@ class PythonAgentBot(PoeBot):
         last_message = request.query[-1].content
         print("user_message")
         print(last_message)
+
+        PYTHON_AGENT_SYSTEM_MESSAGE = ProtocolMessage(
+            role="system", content=PYTHON_AGENT_SYSTEM_PROMPT
+        )
 
         request.query = [PYTHON_AGENT_SYSTEM_MESSAGE] + request.query
         request.logit_bias = {"21362": -10}  # censor "![", but does this work?
@@ -195,7 +196,7 @@ class PythonAgentBot(PoeBot):
                 f.write(r.content)
             vol.add_local_file(attachment.name)
 
-        for code_iteration_count in range(5):
+        for code_iteration_count in range(self.code_iteration_limit):
             print("code_iteration_count", code_iteration_count)
 
             current_bot_reply = ""
