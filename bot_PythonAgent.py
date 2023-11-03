@@ -41,12 +41,14 @@ You write the Python code for me
 When you return Python code
 - Encapsulate all Python code within triple backticks (i.e ```python) with newlines.
 - The Python code should either print something or plot something
-- The Python code should not use input().
+- The Python code should not use input()
 
-Python packages already installed
+I have already install these Python packages
+
 numpy
 scipy
 matplotlib
+basemap (in mpl_toolkits.basemap)
 scikit-learn
 pandas
 ortools
@@ -63,7 +65,6 @@ newspaper3k
 feedparser
 sympy
 yfinance
-basemap (in mpl_toolkits.basemap)
 """
 
 PYTHON_AGENT_SYSTEM_MESSAGE = ProtocolMessage(
@@ -157,7 +158,7 @@ def wrap_session(code, conversation_id):
 
 
 class PythonAgentBot(PoeBot):
-    prompt_bot = "GPT-3.5-Turbo-Instruct"
+    prompt_bot = "ChatGPT"
 
     async def get_response(
         self, request: QueryRequest
