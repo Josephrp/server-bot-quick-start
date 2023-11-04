@@ -62,6 +62,7 @@ The code was executed and this is the output.
 
 Read the output and check whether is it wrong.
 If there is an issue, you will write Python code to fix it.
+You can debug by printing variables in the method.
 """
 
 bot_PythonAgent.SIMULATED_USER_SUFFIX_PROMPT = ""

@@ -224,11 +224,11 @@ class PythonAgentBot(PoeBot):
             # prepare code for execution
             print("code")
             print(code)
-            code = wrap_session(code, conversation_id=request.conversation_id)
+            wrapped_code = wrap_session(code, conversation_id=request.conversation_id)
 
             # upload python script
             with open(f"{request.user_id}.py", "w") as f:
-                f.write(code)
+                f.write(wrapped_code)
             vol.add_local_file(f"{request.user_id}.py", f"{request.user_id}.py")
 
             # execute code
