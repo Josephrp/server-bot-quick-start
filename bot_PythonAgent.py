@@ -138,6 +138,7 @@ Your code was executed but it did not display a plot.
 
 SIMULATED_USER_SUFFIX_PROMPT = """
 If there is an issue, you will fix the Python code.
+Otherwise, provide a brief and concise comment.
 """
 
 
@@ -304,6 +305,8 @@ class PythonAgentBot(PoeBot):
             if image_url:
                 # wishlist - call an API that describes what is going on in the image
                 current_user_simulated_reply += SIMULATED_USER_SUFFIX_IMAGE_FOUND
+                if not output and not error:
+                    current_user_simulated_reply = SIMULATED_USER_SUFFIX_IMAGE_FOUND
             else:
                 if "matplotlib" in code:
                     current_user_simulated_reply += (
