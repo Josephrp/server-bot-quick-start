@@ -98,21 +98,21 @@ with open('{conversation_id}.dill', 'wb') as f:
 """
 
 SIMULATED_USER_REPLY_OUTPUT_ONLY = """\
-The code was executed and this is the output.
+Your code was executed and this is the output.
 ```output
 {output}
 ```
 """
 
 SIMULATED_USER_REPLY_ERROR_ONLY = """\
-The code was executed and this is the error.
+Your code was executed and this is the error.
 ```error
 {error}
 ```
 """
 
 SIMULATED_USER_REPLY_OUTPUT_AND_ERROR = """\
-The code was executed and this is the error.
+Your code was executed and this is the output and error.
 ```output
 {output}
 ```
@@ -123,23 +123,21 @@ The code was executed and this is the error.
 """
 
 SIMULATED_USER_REPLY_NO_OUTPUT_OR_ERROR = """\
-The code was executed without issues, without any standard output.
+Your code was executed without issues, without any standard output.
 """
 
 SIMULATED_USER_SUFFIX_IMAGE_FOUND = """
 
-The code executed returned an image.
+Your code was executed and it displayed a plot.
 """
 
 SIMULATED_USER_SUFFIX_IMAGE_NOT_FOUND = """
 
-The code executed did not return any image.
+Your code was executed but it did not display a plot.
 """
 
 SIMULATED_USER_SUFFIX_PROMPT = """
-
-Carefully read the output and error to check if my request is fulfilled.
-If there is an issue, you will write Python code to fix it without involving me at all.
+If there is an issue, you will fix the Python code.
 """
 
 
@@ -314,7 +312,7 @@ class PythonAgentBot(PoeBot):
 
             current_user_simulated_reply += SIMULATED_USER_SUFFIX_PROMPT
 
-            message = ProtocolMessage(role="bot", content=current_user_simulated_reply)
+            message = ProtocolMessage(role="user", content=current_user_simulated_reply)
             request.query.append(message)
 
     async def get_settings(self, setting: SettingsRequest) -> SettingsResponse:
