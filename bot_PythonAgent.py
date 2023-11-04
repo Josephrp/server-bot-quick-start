@@ -176,7 +176,7 @@ class PythonAgentBot(PoeBot):
         # tried other ways to write a code but has hydration issues
         try:
             vol = modal.NetworkFileSystem.lookup(f"vol-{request.user_id}")
-        except:
+        except Exception:
             stub.nfs = modal.NetworkFileSystem.persisted(f"vol-{request.user_id}")
             sb = stub.spawn_sandbox(
                 "bash", "-c", "cd /cache", network_file_systems={"/cache": stub.nfs}
@@ -200,9 +200,7 @@ class PythonAgentBot(PoeBot):
             print("code_iteration_count", code_iteration_count)
 
             current_bot_reply = ""
-            async for msg in stream_request(
-                request, self.prompt_bot, request.api_key
-            ):
+            async for msg in stream_request(request, self.prompt_bot, request.api_key):
                 if isinstance(msg, MetaMessage):
                     continue
                 elif msg.is_suggested_reply:
@@ -263,7 +261,9 @@ class PythonAgentBot(PoeBot):
                     text=textwrap.dedent(f"\n\n```error\n{error}```\n\n")
                 )
                 current_user_simulated_reply = (
-                    SIMULATED_USER_REPLY_OUTPUT_AND_ERROR.format(output=output, error=error)
+                    SIMULATED_USER_REPLY_OUTPUT_AND_ERROR.format(
+                        output=output, error=error
+                    )
                 )
             elif output:
                 yield PartialResponse(
@@ -308,7 +308,9 @@ class PythonAgentBot(PoeBot):
                 current_user_simulated_reply += SIMULATED_USER_SUFFIX_IMAGE_FOUND
             else:
                 if "matplotlib" in code:
-                    current_user_simulated_reply += SIMULATED_USER_SUFFIX_IMAGE_NOT_FOUND
+                    current_user_simulated_reply += (
+                        SIMULATED_USER_SUFFIX_IMAGE_NOT_FOUND
+                    )
 
             current_user_simulated_reply += SIMULATED_USER_SUFFIX_PROMPT
 
